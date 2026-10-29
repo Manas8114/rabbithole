@@ -1,0 +1,274 @@
+import React, { useState, useEffect } from 'react';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
+import { LandingView } from './components/LandingView';
+import { PassportView } from './components/PassportView';
+import { CuriosityTrailView } from './components/CuriosityTrailView';
+import { EmployerDiscoveryView } from './components/EmployerDiscoveryView';
+import { FieldOfficeView } from './components/FieldOfficeView';
+import { InviteModal } from './components/InviteModal';
+import { StampCollectionModal } from './components/StampCollectionModal';
+import { RankUpModal } from './components/RankUpModal';
+import { Toast } from './components/Toast';
+import { students } from './data/studentsData';
+import { useFieldLog } from './hooks/useFieldLog';
+
+// Initial theme: persisted choice wins, otherwise follow the OS preference.
+// index.html also runs this read before paint to avoid a flash.
+function getInitialTheme() {
+  try {
+    const saved = localStorage.getItem('curiosity-passport-theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+  } catch {}
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+export function App() {
+  // Navigation & View State
+  const [currentView, setCurrentView] = useState('landing');
+  const [selectedStudentId, setSelectedStudentId] = useState('alex-morgan');
+  const [selectedTrailId, setSelectedTrailId] = useState('sustainable-fashion');
+
+  // Theme (light/dark) — persisted, applied via the <html data-theme> attr.
+  const [theme, setTheme] = useState(getInitialTheme);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    try {
+      localStorage.setItem('curiosity-passport-theme', theme);
+    } catch {}
+  }, [theme]);
+
+  const handleToggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+
+  // Field log: the persistent gamification source of truth (XP, rank,
+  // streak, shortlist, invites). Survives refresh via localStorage.
+  const fieldLog = useFieldLog();
+
+  // Shortlist & Invites now live in the field log, so they persist.
+  const shortlist = fieldLog.shortlist;
+  const invitedStudents = fieldLog.invited;
+  const [filterShortlistedOnly, setFilterShortlistedOnly] = useState(false);
+
+  const [inviteModalStudent, setInviteModalStudent] = useState(null);
+  const [stampModalOpen, setStampModalOpen] = useState(false);
+  const [activeRankUp, setActiveRankUp] = useState(null);
+
+  // Toast System
+  const [toasts, setToasts] = useState([]);
+
+  const addToast = (message, tone) => {
+    const id = Date.now() + Math.random().toString(36).substring(2, 6);
+    setToasts((prev) => [...prev, { id, message, tone: tone || 'default' }]);
+
+    // Auto dismiss after 4 seconds
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
+
+  const handleDismissToast = (id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  // Announce XP gains, stamp earns, and promotions from a field-log
+  // mutation result (the shape returned by award / toggleShortlist /
+  // registerInvite / attendMeeting / completeQuest / logReview / writeInquiry).
+  const announceXp = (result, verbLabel) => {
+    if (result && result.earned > 0) {
+      addToast(`${verbLabel} · +${result.earned} XP`, 'xp');
+    }
+    (result?.newStamps || []).forEach((stamp) => {
+      addToast(`Stamp earned: ${stamp.name} (${stamp.stampCode})`, 'stamp');
+    });
+    // Promotions get the full ceremony modal instead of a toast.
+    if (result && result.rankUp) {
+      setActiveRankUp(result.rankUp);
+    }
+  };
+
+  // Mark today as a field-log visit day (drives the streak counter) and
+  // settle any stamp whose predicate newly holds on load (e.g. the return
+  // streak). Toasts earned stamps so a comeback day has a reward.
+  useEffect(() => {
+    fieldLog.touchVisit();
+    const earned = fieldLog.settleStamps();
+    earned.forEach((stamp) => addToast(`Stamp earned: ${stamp.name} (${stamp.stampCode})`, 'stamp'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Navigation handlers
+  const handleNavigateToPassport = (studentId = 'alex-morgan') => {
+    setSelectedStudentId(studentId);
+    setCurrentView('passport');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateToTrail = (trailId = 'sustainable-fashion') => {
+    setSelectedTrailId(trailId);
+    setCurrentView('trail');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateToEmployer = () => {
+    setCurrentView('employer');
+    setFilterShortlistedOnly(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenShortlistFromHeader = () => {
+    setCurrentView('employer');
+    setFilterShortlistedOnly(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Shortlist toggle — persisted via the field log; additions award XP.
+  const handleToggleShortlist = (studentId) => {
+    const student = students.find((s) => s.id === studentId);
+    const studentName = student ? student.name : 'Student';
+    const wasShortlisted = shortlist.includes(studentId);
+
+    const result = fieldLog.toggleShortlist(studentId);
+
+    if (wasShortlisted) {
+      addToast(`Removed ${studentName} from your shortlist.`);
+    } else {
+      addToast(`Added ${studentName} to your candidate shortlist.`);
+    }
+    announceXp(result, 'Shortlist');
+  };
+
+  // Invite Modal & Handlers
+  const handleOpenInviteModal = (student) => {
+    setInviteModalStudent(student);
+  };
+
+  const handleCloseInviteModal = () => {
+    setInviteModalStudent(null);
+  };
+
+  const handleSendInvite = ({ studentId, studentName, companyName, roleType }) => {
+    const result = fieldLog.registerInvite(studentId);
+    setInviteModalStudent(null);
+    addToast(`Demo invitation sent to ${studentName} for "${roleType}" on behalf of ${companyName}!`);
+    announceXp(result, 'Outreach');
+  };
+
+  return (
+    <div className="app-container">
+      {/* Universal Sticky Header */}
+      <Header
+        currentView={currentView}
+        setCurrentView={(view) => {
+          setCurrentView(view);
+          if (view === 'employer') setFilterShortlistedOnly(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        shortlistCount={shortlist.length}
+        onOpenShortlist={handleOpenShortlistFromHeader}
+        fieldLog={fieldLog}
+        onOpenStamps={() => setStampModalOpen(true)}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
+      />
+
+      {/* View Router */}
+      <main className="main-content">
+        {currentView === 'landing' && (
+          <LandingView
+            onNavigateToPassport={handleNavigateToPassport}
+            onNavigateToTrail={handleNavigateToTrail}
+            onNavigateToEmployer={handleNavigateToEmployer}
+          />
+        )}
+
+        {currentView === 'passport' && (
+          <PassportView
+            studentId={selectedStudentId}
+            onSelectStudent={(id) => setSelectedStudentId(id)}
+            onNavigateToTrail={handleNavigateToTrail}
+            onToggleShortlist={handleToggleShortlist}
+            isShortlisted={shortlist.includes(selectedStudentId)}
+            onOpenInviteModal={handleOpenInviteModal}
+            fieldLog={selectedStudentId === 'you' ? fieldLog : null}
+            onWriteInquiry={(text) => {
+              const result = fieldLog.writeInquiry(text);
+              addToast('Your question has been filed to your passport.');
+              announceXp(result, 'Question filed');
+            }}
+          />
+        )}
+
+        {currentView === 'trail' && (
+          <CuriosityTrailView
+            trailId={selectedTrailId}
+            onSelectTrail={handleNavigateToTrail}
+            onBackToPassport={(studentId) => handleNavigateToPassport(studentId || selectedStudentId)}
+            onOpenInviteModal={handleOpenInviteModal}
+            onShowToast={addToast}
+            onAwardXp={(actionKey, label) => announceXp(fieldLog.award(actionKey), label)}
+            onLogReview={(trailId, focus) => {
+              const result = fieldLog.logReview(trailId, focus);
+              addToast('Peer review filed to your passport.');
+              announceXp(result, 'Peer review');
+            }}
+            reviewedFocus={(fieldLog.reviews || []).find((r) => r.trailId === selectedTrailId)?.focus}
+          />
+        )}
+
+        {currentView === 'office' && (
+          <FieldOfficeView
+            fieldLog={fieldLog}
+            onShowToast={addToast}
+            onAwardLabel={(result) => announceXp(result, 'Field Office')}
+          />
+        )}
+
+        {currentView === 'employer' && (
+          <EmployerDiscoveryView
+            onNavigateToPassport={handleNavigateToPassport}
+            onNavigateToTrail={handleNavigateToTrail}
+            shortlist={shortlist}
+            onToggleShortlist={handleToggleShortlist}
+            onOpenInviteModal={handleOpenInviteModal}
+            invitedStudents={invitedStudents}
+            filterShortlistedOnly={filterShortlistedOnly}
+            setFilterShortlistedOnly={setFilterShortlistedOnly}
+          />
+        )}
+      </main>
+
+      {/* Recruiter Outreach Simulation Modal */}
+      <InviteModal
+        isOpen={!!inviteModalStudent}
+        student={inviteModalStudent}
+        onClose={handleCloseInviteModal}
+        onSendInvite={handleSendInvite}
+      />
+
+      {/* Field Office: Stamp Collection (with a reset control for the demo) */}
+      <StampCollectionModal
+        isOpen={stampModalOpen}
+        onClose={() => setStampModalOpen(false)}
+        earnedStamps={fieldLog.earnedStamps}
+        xp={fieldLog.xp}
+        onResetLog={() => {
+          if (window.confirm('Reset your field log? This clears all XP, stamps, attendance, and notes for this demo.')) {
+            fieldLog.resetLog();
+          }
+        }}
+      />
+
+      {/* Rank promotion ceremony */}
+      <RankUpModal rankUp={activeRankUp} onClose={() => setActiveRankUp(null)} />
+
+      {/* Global Toast Notification System */}
+      <Toast toasts={toasts} onDismiss={handleDismissToast} />
+
+      {/* Universal Editorial Footer */}
+      <Footer setCurrentView={setCurrentView} />
+    </div>
+  );
+}
+
+export default App;
