@@ -5,6 +5,7 @@ export const trailsData = {
   // ---------------------------------------------------------------------------
   "sustainable-fashion": {
     id: "sustainable-fashion",
+    shortLabel: "Sustainable Fashion",
     studentId: "alex-morgan",
     studentName: "Alex Morgan",
     studentAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
@@ -245,6 +246,7 @@ export const trailsData = {
   // ---------------------------------------------------------------------------
   "reverse-logistics": {
     id: "reverse-logistics",
+    shortLabel: "Reverse Logistics",
     studentId: "alex-morgan",
     studentName: "Alex Morgan",
     studentAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
@@ -403,6 +405,7 @@ export const trailsData = {
   // ---------------------------------------------------------------------------
   "carbon-accounting": {
     id: "carbon-accounting",
+    shortLabel: "Scope 3 Carbon",
     studentId: "alex-morgan",
     studentName: "Alex Morgan",
     studentAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
@@ -516,6 +519,7 @@ export const trailsData = {
   // ---------------------------------------------------------------------------
   "icu-alarm-fatigue": {
     id: "icu-alarm-fatigue",
+    shortLabel: "ICU Alarm Fatigue",
     studentId: "priya-chen",
     studentName: "Priya Chen",
     studentAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
@@ -671,10 +675,271 @@ export const trailsData = {
   },
 
   // ---------------------------------------------------------------------------
+  // TRAIL 4b: Priya Chen - Ambient AI Scribing & Patient Trust
+  // ---------------------------------------------------------------------------
+  "ambient-audio-scribing": {
+    id: "ambient-audio-scribing",
+    shortLabel: "Clinical Scribing",
+    studentId: "priya-chen",
+    studentName: "Priya Chen",
+    studentAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
+    studentRole: "Cognitive Science & Human-AI, Carnegie Mellon",
+    title: "When does ambient AI audio documentation compromise patient trust during consultations?",
+    subtitle: "Investigating why patients alter their symptom narratives when an always-on ambient recorder sits between them and the clinician.",
+    status: "Active Field Inquiry",
+    startedDate: "Nov 2024",
+    completedDate: "In Progress",
+    readTime: "5 min explore",
+    tags: ["Patient Trust", "Speech AI", "Clinical Ethics", "Healthcare UX"],
+    curiosityRating: "Top 15% Trail on Platform",
+
+    whyCurious: `After shadowing a geriatric clinic, I noticed consultations quietly change shape the moment an ambient scribing microphone is positioned on the table. The patients who gave the richest histories in the first three minutes began giving shorter, more guarded answers — and the ones who were least tech-comfortable stopped asking questions at all. Nobody had flagged this. Consent forms cover recording; they do not cover the social mechanics of being recorded.`,
+
+    relatedQuestions: [
+      {
+        q: "Does the physical position of a recording device matter more than the consent disclaimer?",
+        insight: "Devices placed off-axis from both speaker and listener dropped self-reported discomfort by a third in a small observational test."
+      },
+      {
+        q: "Do marginalized patients edit their symptom narratives more under ambient listening?",
+        insight: "Narratives shortened roughly 22% on average, with the largest effects among patients who reported lower baseline trust in medical institutions."
+      }
+    ],
+
+    nodes: [
+      {
+        id: "node-as-1",
+        stepNumber: "01",
+        phase: "Field Observation",
+        title: "The Tabletop Microphone Effect",
+        date: "Nov 2024",
+        summary: "Observed 40 ambient-scribing consultations across two clinics and logged where and when patient narrative depth changed.",
+        body: `I coded each consultation for when the ambient recorder first became the focal object of the room. In most of them the conversation did not just continue — it reorganized. Patients began addressing the clinician more formally, and several stopped sharing context that had felt safe moments before.`,
+        keyTakeaway: "Trust is not a one-time consent checkbox; it is a live social property of the room.",
+        evidenceType: "Clinical Observation",
+        readiness: "Complete"
+      },
+      {
+        id: "node-as-2",
+        stepNumber: "02",
+        phase: "Device Positioning Test",
+        title: "Where the Microphone Sits Matters",
+        date: "Dec 2024",
+        summary: "Compared three physical placements of the scribing device and measured self-reported discomfort and narrative length.",
+        body: `Off-axis placement — where the device sits to the side rather than between patient and clinician — produced measurably more complete narratives. The physical choreography of who faces whom, and what object occupies the middle, does the social work that no disclaimer performs.`,
+        keyTakeaway: "The object's position in the room is a design decision with ethical consequences.",
+        evidenceType: "Comparative Field Test",
+        readiness: "Complete"
+      },
+      {
+        id: "node-as-3",
+        stepNumber: "03",
+        phase: "Guideline Drafting",
+        title: "Trust-Preserving Scribing Guidelines",
+        date: "Jan 2025",
+        summary: "Turned the findings into a short positioning and practice guideline for clinics that deploy ambient documentation.",
+        body: `The guideline covers device placement, who controls the recording, how transcripts are reviewed with the patient, and when ambient capture should be off entirely. It is deliberately a practice note rather than a policy, so clinics can adopt it without waiting on institutional sign-off.`,
+        keyTakeaway: "Consent and comfort are separate problems; good practice addresses both.",
+        evidenceType: "Guideline Draft",
+        readiness: "Active"
+      }
+    ],
+
+    discoveries: [
+      {
+        title: "Position beats disclaimer",
+        desc: "Where the recorder physically sits in the consultation room correlates more strongly with patient comfort than the consent language used."
+      }
+    ],
+
+    sources: [
+      {
+        title: "Clinician field notes, geriatric consultations",
+        author: "Priya Chen",
+        type: "Primary Observation",
+        quote: "Patients started giving shorter, more guarded answers the moment the recorder became the room's focus.",
+        annotation: "The raw observation that seeded the whole inquiry."
+      }
+    ],
+
+    miniProject: {
+      title: "Trust-Preserving Clinical Scribing Guidelines",
+      type: "Practice Guideline",
+      badge: "Field Practice Note",
+      metric1: "3 Clinic Sites",
+      metric2: "40 Consultations",
+      metric3: "1 Positioning Rule",
+      description: "A short, adoptable set of placement and practice rules for ambient documentation that keeps patients narrating freely.",
+      outcomes: [
+        "Drafted and circulated to two clinics for pilot",
+        "Positioning rule reduced self-reported discomfort in the small test"
+      ]
+    },
+
+    lessonsLearned: [
+      {
+        number: "01",
+        title: "Consent is necessary, not sufficient",
+        text: "Signing a form and feeling safe to speak are different things, and the second is where the trust actually lives."
+      }
+    ],
+
+    uncertainties: [
+      {
+        title: "Effect size across populations",
+        detail: "The positioning effect was strong in the test but is still too small and too homogeneous to generalize confidently."
+      }
+    ],
+
+    nextQuestion: {
+      question: "Can tactile micro-haptics replace acoustic tones in sterile surgical environments?",
+      explorationStatus: "Prototyping Wristband Array",
+      hypothesisPreview: "Vibration frequencies mapped to bone conduction could signal heart rate anomalies directly to surgeons without competing with noisy bone saws."
+    }
+  },
+
+  // ---------------------------------------------------------------------------
+  // TRAIL 4c: Priya Chen - Voice Agent Latency Perception
+  // ---------------------------------------------------------------------------
+  "multi-modal-latency": {
+    id: "multi-modal-latency",
+    shortLabel: "Voice Latency",
+    studentId: "priya-chen",
+    studentName: "Priya Chen",
+    studentAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
+    studentRole: "Cognitive Science & Human-AI, Carnegie Mellon",
+    title: "What is the acceptable latency threshold before users lose conversational flow with voice agents?",
+    subtitle: "Measuring pupil dilation and speech hesitation across response delays of 200ms to 900ms in controlled speech-to-speech trials.",
+    status: "Laboratory Testing",
+    startedDate: "Jan 2025",
+    completedDate: "In Progress",
+    readTime: "5 min explore",
+    tags: ["Voice UX", "Latency", "Psychophysics", "Human-AI"],
+    curiosityRating: "Top 18% Trail on Platform",
+
+    whyCurious: `Voice agents are sold on the promise of conversation, but conversation has a rhythm, and latency is where that rhythm breaks. I wanted a number — not a feel — for where the floor actually is: the delay at which a person starts to feel like they are talking to a machine rather than a partner. Pupil dilation and hesitation give you that number without asking.`,
+
+    relatedQuestions: [
+      {
+        q: "Do conversational fillers mask latency?",
+        insight: "Natural-sounding filler acoustics ('um', 'let me check that') bought up to roughly 450ms of perceived lag without degrading trust."
+      },
+      {
+        q: "At what delay does conversational flow measurably break?",
+        insight: "Speech hesitation rose sharply past about 600ms of response delay, which is where 'conversation' started to feel like 'turn-taking with a delay'."
+      }
+    ],
+
+    nodes: [
+      {
+        id: "node-ml-1",
+        stepNumber: "01",
+        phase: "Experimental Design",
+        title: "Latency Ladder, 200ms to 900ms",
+        date: "Jan 2025",
+        summary: "Designed a controlled ladder of response delays and chose pupil dilation and hesitation as the two behavioral readouts.",
+        body: `I set up a speech-to-speech harness that could inject a controlled delay between the participant's utterance and the agent's reply, stepping it in 100ms increments. Two signals track conversational flow well: how long participants hesitate before their next turn, and their resting pupil dilation under cognitive load.`,
+        keyTakeaway: "You need an objective physiological readout; self-reported 'did it feel slow' is not precise enough.",
+        evidenceType: "Experimental Design",
+        readiness: "Complete"
+      },
+      {
+        id: "node-ml-2",
+        stepNumber: "02",
+        phase: "Latency Perception Curve",
+        title: "Where the Flow Breaks",
+        date: "Feb 2025",
+        summary: "Ran the ladder across participants and plotted hesitation and dilation against injected delay to find the inflection.",
+        body: `Hesitation stayed flat up to around 400ms, then climbed steeply. Filler acoustics flattened the curve — the same 600ms of silence felt tolerable when the agent was 'thinking out loud' but not when it just sat there. The perceived-lag ceiling is not a property of the delay alone; it is a property of how the agent spends that delay.`,
+        keyTakeaway: "How a system spends its latency is as important as how long it takes.",
+        evidenceType: "Controlled Trial",
+        readiness: "Complete"
+      },
+      {
+        id: "node-ml-3",
+        stepNumber: "03",
+        phase: "Threshold Synthesis",
+        title: "The 600ms Flow Break",
+        date: "Mar 2025",
+        summary: "Synthesized a working threshold: below ~400ms conversation feels live; ~400–600ms depends on filler behavior; past ~600ms flow breaks.",
+        body: `The practical reading is that a voice agent has a budget of a few hundred milliseconds to feel conversational, and filler acoustics effectively extend that budget. The 'acceptable latency' is not a single number but a region of the curve, and the design lever is how the system fills the gap, not just the raw speed.`,
+        keyTakeaway: "Latency is a design variable, not just an engineering one — how you fill the gap matters as much as how fast it is.",
+        evidenceType: "Threshold Model",
+        readiness: "Active"
+      },
+      {
+        id: "node-ml-4",
+        stepNumber: "04",
+        phase: "Next Experiments",
+        title: "Trust Under Sustained Delay",
+        date: "Apr 2025",
+        summary: "Planning follow-up trials that hold a delay constant across a longer conversation to see where trust — not just flow — degrades.",
+        body: `Flow and trust separate over longer interactions. A single late reply is forgivable; a consistently late partner changes how people weight what the agent says. The next experiment holds delay steady across many turns and tracks whether participants discount the agent's claims.`,
+        keyTakeaway: "Perceived competence is built across a conversation, not on a single response time.",
+        evidenceType: "Planned Study",
+        readiness: "In Planning"
+      }
+    ],
+
+    discoveries: [
+      {
+        title: "Fillers are a latency tool",
+        desc: "Conversational filler acoustics extend the perceived-lag budget by up to ~450ms without degrading trust."
+      }
+    ],
+
+    sources: [
+      {
+        title: "Controlled latency-ladder trial data",
+        author: "Priya Chen",
+        type: "Primary Experiment",
+        quote: "Hesitation stayed flat to ~400ms, then climbed steeply; fillers flattened the curve.",
+        annotation: "The core behavioral finding of the trail."
+      }
+    ],
+
+    miniProject: {
+      title: "Voice Interaction Latency Perception Curve",
+      type: "Experimental Benchmark",
+      badge: "Psychophysics Curve",
+      metric1: "5 Delay Steps",
+      metric2: "2 Physio Readouts",
+      metric3: "~450ms Buffer",
+      description: "A measured latency-perception curve with the filler-acoustic finding, usable as a design budget for voice agents.",
+      outcomes: [
+        "Produced a latency design budget for voice agents",
+        "Quantified the filler-acoustic buffering effect"
+      ]
+    },
+
+    lessonsLearned: [
+      {
+        number: "01",
+        title: "Design the gap, not just the speed",
+        text: "How a system spends its latency — with fillers, progress, silence — shapes the experience as much as the raw delay does."
+      }
+    ],
+
+    uncertainties: [
+      {
+        title: "Trust vs. flow separation",
+        detail: "The trust-over-time effect is hypothesized but not yet measured; the flow-break threshold is solid, the trust-break threshold is not."
+      }
+    ],
+
+    nextQuestion: {
+      question: "How do voice agents affect memory retention during high-velocity crisis response?",
+      explorationStatus: "Simulation Design",
+      hypothesisPreview: "First responders relying on conversational AI may show memory degradation unless the system actively reinforces recall."
+    }
+  },
+
+  // ---------------------------------------------------------------------------
   // TRAIL 5: Marcus Vance - Mycelium Packaging & Bio-Foams
   // ---------------------------------------------------------------------------
   "mycelium-cold-chain": {
     id: "mycelium-cold-chain",
+    shortLabel: "Mycelium Cold-Chain",
     studentId: "marcus-vance",
     studentName: "Marcus Vance",
     studentAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80",
@@ -827,6 +1092,266 @@ export const trailsData = {
       explorationStatus: "Queueing for Laboratory Trials",
       hypothesisPreview: "Adding 10% bio-char could create anti-static packaging for sensitive silicon chips without carbon-black petrochemical coatings."
     }
+  },
+
+  // ---------------------------------------------------------------------------
+  // TRAIL 5b: Marcus Vance - Ag-Waste Substrate Compressive Index
+  // ---------------------------------------------------------------------------
+  "cotton-trash-substrate": {
+    id: "cotton-trash-substrate",
+    shortLabel: "Ag-Waste Bricks",
+    studentId: "marcus-vance",
+    studentName: "Marcus Vance",
+    studentAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+    studentRole: "Materials Science & Ag Engineering, Georgia Tech",
+    title: "What regional agricultural waste yields the highest compressive strength for bio-brick structural cores?",
+    subtitle: "Benchmarking peanut shells, bagasse, and cotton gin trash inoculated with Pleurotus ostreatus under calibrated hydraulic compression.",
+    status: "Active Testing",
+    startedDate: "Nov 2024",
+    completedDate: "In Progress",
+    readTime: "6 min explore",
+    tags: ["Ag Waste", "Structural Testing", "Circular Materials", "Biomaterials"],
+    curiosityRating: "Top 12% Trail on Platform",
+
+    whyCurious: `The mycelium cooler proved that fungal composites can hold a 2–8°C payload for days, but the substrate question I was handed — 'use peanut hulls' — was never actually tested against the other regional wastes. Georgia alone generates cotton gin trash, peanut shells, and sugarcane bagasse in enormous, cheap volumes. I wanted to know which one actually makes the strongest bio-brick, not which one just happens to be on hand.`,
+
+    relatedQuestions: [
+      {
+        q: "Which regional waste has the highest lignin content for compressive strength?",
+        insight: "Peanut-hull lignin content is the highest of the three, which tracks directly into roughly 34% higher compressive resistance than wheat-straw reference material."
+      },
+      {
+        q: "Does mixing substrates beat any single one?",
+        insight: "A peanut-shell-dominant blend with a bagasse binder outperformed 100% peanut hull on crash damping while keeping most of the compressive edge."
+      }
+    ],
+
+    nodes: [
+      {
+        id: "node-ct-1",
+        stepNumber: "01",
+        phase: "Substrate Sourcing",
+        title: "Gathering the Regional Waste Stream",
+        date: "Nov 2024",
+        summary: "Secured peanut shells, sugarcane bagasse, and cotton gin trash from three regional suppliers at roughly zero cost.",
+        body: `The real discovery was logistics: every 'waste' stream has a season and a price that is not actually zero once it is bagged. Bagasse arrives wet and must be dried; cotton gin trash is a dust that must be baled. The substrate is only as strong as the supply chain that can keep it consistent.`,
+        keyTakeaway: "A biomaterials project is a supply-chain project first.",
+        evidenceType: "Sourcing",
+        readiness: "Complete"
+      },
+      {
+        id: "node-ct-2",
+        stepNumber: "02",
+        phase: "Inoculation & Cultivation",
+        title: "Growing the Bio-Bricks",
+        date: "Dec 2024",
+        summary: "Inoculated each substrate batch with Pleurotus ostreatus under a fixed 9-day, temperature-controlled protocol.",
+        body: `I held moisture, temperature, and mold constant across the three substrates so that any strength difference could be attributed to the substrate itself rather than to the growing conditions. That control is what makes the compressive index actually comparable across materials.`,
+        keyTakeaway: "You cannot compare substrates unless the biology is held identical.",
+        evidenceType: "Culture Protocol",
+        readiness: "Complete"
+      },
+      {
+        id: "node-ct-3",
+        stepNumber: "03",
+        phase: "Compression Testing",
+        title: "Calibrated Hydraulic Compression",
+        date: "Jan 2025",
+        summary: "Ran 24 samples through a calibrated hydraulic rig and recorded peak stress and energy-absorption curves.",
+        body: `The compressive index is peak stress per unit, plus a crash-damping readout (area under the curve). Peanut hull led on both; bagasse was the crash-impact damper. I logged all raw curves so the index can be re-derived if the protocol changes.`,
+        keyTakeaway: "Strength and damping are separate properties, and the best substrate depends on which one your product needs.",
+        evidenceType: "Compressive Test",
+        readiness: "Complete"
+      },
+      {
+        id: "node-ct-4",
+        stepNumber: "04",
+        phase: "Blend Formulation",
+        title: "Peanut-Dominant Hybrid Blend",
+        date: "Feb 2025",
+        summary: "Formulated a peanut-shell-dominant blend with a bagasse binder and tested it against the single-substrate results.",
+        body: `The hybrid keeps most of the peanut compressive edge while borrowing the bagasse crash damping. It is the configuration I would actually recommend for a structural core that sees both steady load and a single hard impact.`,
+        keyTakeaway: "Blends let you trade one substrate's strength for another's damping.",
+        evidenceType: "Blend Trial",
+        readiness: "Active"
+      }
+    ],
+
+    discoveries: [
+      {
+        title: "Lignin is the strength currency",
+        desc: "Peanut-hull lignin content provides roughly 34% higher compressive resistance compared to a wheat-straw baseline."
+      }
+    ],
+
+    sources: [
+      {
+        title: "Hydraulic compression test log, 24 samples",
+        author: "Marcus Vance",
+        type: "Primary Experiment",
+        quote: "Peanut hull led on both peak stress and crash damping; bagasse was the impact damper.",
+        annotation: "The raw dataset behind the Compressive Index."
+      }
+    ],
+
+    miniProject: {
+      title: "Ag-Waste Substrate Compressive Index",
+      type: "Materials Benchmark",
+      badge: "Open Benchmark",
+      metric1: "24 Samples",
+      metric2: "3 Substrates",
+      metric3: "34% Higher Peak",
+      description: "A re-derivable compressive index across regional agricultural wastes, with the raw curves published.",
+      outcomes: [
+        "Ranked three regional wastes for structural bio-brick cores",
+        "Validated a peanut-dominant blend for crash damping"
+      ]
+    },
+
+    lessonsLearned: [
+      {
+        number: "01",
+        title: "Separate strength from damping",
+        text: "The substrate that holds the most steady load is not always the one that survives the hardest impact; design for both, deliberately."
+      }
+    ],
+
+    uncertainties: [
+      {
+        title: "Season-to-season substrate variance",
+        detail: "The index was built from one growing season; harvest-year moisture could shift the ranking."
+      }
+    ],
+
+    nextQuestion: {
+      question: "How can continuous conveyor baking replace batch autoclaving for industrial mycelium desiccation?",
+      explorationStatus: "Benchtop Chamber",
+      hypothesisPreview: "Infra-red continuous drying could cut desiccation energy by up to 40% versus batch ovens."
+    }
+  },
+
+  // ---------------------------------------------------------------------------
+  // TRAIL 5c: Marcus Vance - Bio-Foam Waterproofing & Mold Resistance
+  // ---------------------------------------------------------------------------
+  "bio-foam-waterproofing": {
+    id: "bio-foam-waterproofing",
+    shortLabel: "Wax Waterproofing",
+    studentId: "marcus-vance",
+    studentName: "Marcus Vance",
+    studentAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+    studentRole: "Materials Science & Ag Engineering, Georgia Tech",
+    title: "Can plant-based candelilla wax coatings prevent fungal bio-composites from mold growth in tropical shipping?",
+    subtitle: "Subjecting wax-dipped mycelium bricks to 90% relative-humidity chambers to quantify water-vapor transmission and mold onset.",
+    status: "Field Trials",
+    startedDate: "Jan 2025",
+    completedDate: "In Progress",
+    readTime: "6 min explore",
+    tags: ["Surface Chemistry", "Moisture Barrier", "Packaging", "Circular Materials"],
+    curiosityRating: "Top 20% Trail on Platform",
+
+    whyCurious: `A bio-composite that cannot survive a humid week in transit is not a packaging material. The mycelium cooler held temperature beautifully, but tropical cold-chain shipping is all condensation and mold. I wanted to know whether a food-safe plant wax could push the mold-onset and water-vapor-transmission numbers close enough to a plastic liner that the plastic becomes optional.`,
+
+    relatedQuestions: [
+      {
+        q: "How far can a plant wax match a synthetic polyethylene moisture barrier?",
+        insight: "A 5% beeswax–candelilla emulsion matched polyethylene moisture protection for up to about 96 hours in the chamber."
+      },
+      {
+        q: "Does a wax film kill mold growth or just slow it?",
+        insight: "The coating slows vapor ingress enough that mold onset is delayed by several days; it is a moisture barrier, not an antifungal."
+      }
+    ],
+
+    nodes: [
+      {
+        id: "node-bf-1",
+        stepNumber: "01",
+        phase: "Coating Formulation",
+        title: "Designing the Plant-Wax Barrier",
+        date: "Jan 2025",
+        summary: "Formulated a 5% beeswax–candelilla emulsion and compared it against an uncoated control and a polyethylene reference.",
+        body: `The formulation had to be food-safe and fully biodegradable, so synthetic hydrophobic coatings were out. I tuned the emulsion so the wax spread into a thin, continuous film without pooling, which is where most first attempts failed.`,
+        keyTakeaway: "A hydrophobic barrier only works if it is a continuous film; patchy coating is worse than none.",
+        evidenceType: "Formulation",
+        readiness: "Complete"
+      },
+      {
+        id: "node-bf-2",
+        stepNumber: "02",
+        phase: "Water-Vapor Transmission",
+        title: "90% Humidity Chamber Trials",
+        date: "Feb 2025",
+        summary: "Ran coated and control bricks in 90% relative-humidity chambers and measured water-vapor transmission rate (WVTR) over 96 hours.",
+        body: `The uncoated control absorbed moisture fast enough that mold onset followed within a few days. The 5% emulsion cut the WVTR close to the polyethylene reference for the first 96 hours, then slowly degraded — the wax film is real but finite.`,
+        keyTakeaway: "A plant wax matches plastic for a useful window, then gives way; that window is the shipping target.",
+        evidenceType: "WVTR Test",
+        readiness: "Complete"
+      },
+      {
+        id: "node-bf-3",
+        stepNumber: "03",
+        phase: "Mold Onset",
+        title: "When the Wax Gives Way",
+        date: "Mar 2025",
+        summary: "Logged mold onset on coated versus control samples to pin down the practical shelf life of the barrier.",
+        body: `Coated samples delayed mold onset by several days relative to controls. That delay lines up with the WVTR window. The honest read is that the wax extends the usable transit time but does not make the composite infinitely shelf-stable.`,
+        keyTakeaway: "The coating buys transit time; it does not remove the need for a dry last mile.",
+        evidenceType: "Mold Trial",
+        readiness: "Active"
+      }
+    ],
+
+    discoveries: [
+      {
+        title: "The 96-hour match",
+        desc: "A 5% beeswax–candelilla emulsion matches synthetic polyethylene moisture protection for up to about 96 hours under 90% humidity."
+      }
+    ],
+
+    sources: [
+      {
+        title: "Humidity-chamber WVTR and mold-onset log",
+        author: "Marcus Vance",
+        type: "Primary Experiment",
+        quote: "The 5% emulsion matched polyethylene for 96 hours, then slowly degraded.",
+        annotation: "The moisture-barrier result behind the waterproofing claim."
+      }
+    ],
+
+    miniProject: {
+      title: "All-Natural Hydrophobic Barrier Formulations",
+      type: "Coating Formulation",
+      badge: "Barrier Spec",
+      metric1: "5% Emulsion",
+      metric2: "96h Match to PE",
+      metric3: "0 Synthetic",
+      description: "A food-safe plant-wax barrier that extends the usable transit window of fungal bio-composites.",
+      outcomes: [
+        "Matched a synthetic plastic's moisture barrier for 96 hours",
+        "Quantified mold-onset delay to size the shipping target"
+      ]
+    },
+
+    lessonsLearned: [
+      {
+        number: "01",
+        title: "A barrier is a window, not a wall",
+        text: "Natural coatings hold their performance for a bounded period; you design the shipping plan around that window."
+      }
+    ],
+
+    uncertainties: [
+      {
+        title: "Outdoor, variable-humidity behavior",
+        detail: "All data are from a controlled 90% chamber; real transit humidity swings are not yet measured."
+      }
+    ],
+
+    nextQuestion: {
+      question: "How can continuous conveyor baking replace batch autoclaving for industrial mycelium desiccation?",
+      explorationStatus: "Benchtop Chamber",
+      hypothesisPreview: "Infra-red continuous drying could cut desiccation energy by up to 40% versus batch ovens."
+    }
   }
 };
 
@@ -835,6 +1360,16 @@ export function getTrailById(id) {
   if (!id) return trailsData["sustainable-fashion"];
   return trailsData[id] || trailsData["sustainable-fashion"];
 }
+
+// Derived switcher list — the single source of truth for "which trails
+// exist", in file order. The trail view's quick switcher renders this
+// instead of a hand-maintained array, so adding a trail below is enough.
+export const availableTrails = Object.values(trailsData).map((t) => ({
+  id: t.id,
+  label: t.shortLabel || t.title,
+  author: t.studentName,
+  tag: t.tags?.[0] || '',
+}));
 
 // Backwards compatibility export
 export const featuredTrailData = trailsData["sustainable-fashion"];

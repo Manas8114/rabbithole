@@ -2,6 +2,7 @@
 // Gamification foundation: rank ladder, XP actions, CQ scoring, and the
 // stamp (achievement) catalog. Meetings/quests land in later steps.
 // ===========================================================================
+import { trailsData } from './curiosityTrailData';
 import {
   Compass,
   Map,
@@ -101,8 +102,9 @@ export const STAMP_CATALOG = [
     stampCode: 'SEAL-002',
     icon: 'Map',
     bonusXp: 60,
-    desc: 'Open all five curiosity trails across the cohort.',
-    check: (s) => new Set(Object.keys(s.claimedOnce || {}).filter((k) => k.startsWith('openTrail:'))).size >= 5,
+    desc: `Open every curiosity trail in the platform (${Object.keys(trailsData).length} total).`,
+    // Data-driven: counts the trails that actually exist, not a hardcoded 5.
+    check: (s) => new Set(Object.keys(s.claimedOnce || {}).filter((k) => k.startsWith('openTrail:'))).size >= Object.keys(trailsData).length,
   },
   {
     id: 'deep-reader',

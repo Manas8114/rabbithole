@@ -17,7 +17,7 @@ import {
   Bookmark,
   Trophy
 } from 'lucide-react';
-import { getTrailById } from '../data/curiosityTrailData';
+import { getTrailById, trailsData } from '../data/curiosityTrailData';
 import { ReviewPrompt } from './ReviewPrompt';
 
 export function CuriosityTrailView({
@@ -86,14 +86,14 @@ export function CuriosityTrailView({
     onShowToast?.(`Link to "${trail.title}" copied to clipboard!`);
   };
 
-  // Available trails for the quick switcher
-  const availableTrails = [
-    { id: 'sustainable-fashion', label: 'Sustainable Fashion', author: 'Alex Morgan', tag: 'Business' },
-    { id: 'reverse-logistics', label: 'Reverse Logistics', author: 'Alex Morgan', tag: 'Supply Chain' },
-    { id: 'carbon-accounting', label: 'Scope 3 Carbon', author: 'Alex Morgan', tag: 'Climate Tech' },
-    { id: 'icu-alarm-fatigue', label: 'ICU Alarm Fatigue', author: 'Priya Chen', tag: 'Human-AI' },
-    { id: 'mycelium-cold-chain', label: 'Mycelium Cold-Chain', author: 'Marcus Vance', tag: 'Materials' },
-  ];
+  // Quick switcher — derived from the single source of truth (trailsData),
+  // not a hand-maintained list. Adding a trail to the data file is enough.
+  const availableTrails = Object.values(trailsData).map((t) => ({
+    id: t.id,
+    label: t.shortLabel || t.title,
+    author: t.studentName,
+    tag: t.tags?.[0] || '',
+  }));
 
   return (
     <div className="trail-view-container">

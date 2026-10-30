@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "check:data": "node scripts/check-trail-consistency.mjs",
+    "prebuild": "npm run check:data",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
