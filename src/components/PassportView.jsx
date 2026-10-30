@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { students } from '../data/studentsData';
 import { STAMP_CATALOG } from '../data/gamificationData';
+import { trailsData } from '../data/curiosityTrailData';
 
 export function PassportView({
   studentId = 'alex-morgan',
@@ -35,9 +36,16 @@ export function PassportView({
   // from the seed record. Other passports keep their authored stats.
   const isYou = activeStudent.id === 'you' && !!fieldLog;
   const liveCq = isYou ? `${fieldLog.cq}/100` : activeStudent.stats.cqIndex;
+  const yourTrails = isYou
+    ? Object.entries(fieldLog.exploredTrails || {}).map(([id, rec]) => ({
+        id,
+        total: trailsData[id]?.nodes?.length || rec.stagesRead,
+        ...rec,
+      }))
+    : [];
   const liveStats = isYou
     ? {
-        trailsActive: 0,
+        trailsActive: yourTrails.length,
         projectsBuilt: 0,
         fieldNotes: fieldLog.fieldNotes.length,
         milestoneStamps: fieldLog.earnedStamps.length,
@@ -251,12 +259,38 @@ export function PassportView({
                     <span className="subtitle">Real-world questions explored independently outside class curricula</span>
                   </div>
                   <span className="mono-stamp" style={{ color: 'var(--forest-600)' }}>
-                    {activeStudent.trails.length} ACTIVE INQUIRIES
+                    {isYou ? liveStats.trailsActive : activeStudent.trails.length} ACTIVE INQUIRIES
                   </span>
                 </div>
 
                 <div className="trails-stack">
-                  {isYou && (
+                  {isYou && yourTrails.length > 0 && (
+                    yourTrails.map((rec) => {
+                      const t = trailsData[rec.id];
+                      const pct = Math.min(100, Math.round((rec.stagesRead / rec.total) * 100));
+                      const reviewed = (fieldLog.reviews || []).find((r) => r.trailId === rec.id);
+                      return (
+                        <div key={rec.id} className="trail-card-preview you-trail-card" onClick={() => onNavigateToTrail(rec.id)}>
+                          <div className="trail-header-meta">
+                            <span className="tag-pill">Exploring · {t?.studentName || 'Field'}</span>
+                            <span className="trail-status-pill">{rec.complete ? 'Trace Complete' : 'In Progress'}</span>
+                          </div>
+                          <h4 className="trail-question-title">
+                            "{t?.title || rec.id}"
+                          </h4>
+                          <p className="trail-summary-snippet">
+                            {rec.stagesRead} of {rec.total} stages documented
+                            {rec.complete ? ' · full trace complete' : ' · keep going to complete the trace'}
+                            {reviewed ? ' · peer review filed' : ''}
+                          </p>
+                          <div className="you-trail-progress" aria-hidden="true">
+                            <div className="you-trail-progress-fill" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  {isYou && yourTrails.length === 0 && (
                     <div className="trail-card-preview you-empty-card">
                       <h4 className="trail-question-title" style={{ fontSize: '1.05rem' }}>
                         No trails filed yet — your first open inquiry becomes trail one.

@@ -154,6 +154,41 @@ export function App() {
     announceXp(result, 'Outreach');
   };
 
+  // Demo pipeline: while the user is on the employer view, each active invite
+  // advances a stage on a gentle timer so the showcase feels alive. The
+  // recruiter can also advance by hand (button on each card).
+  useEffect(() => {
+    if (currentView !== 'employer') return undefined;
+    const id = setInterval(() => {
+      const statuses = fieldLog.inviteStatus;
+      const moving = Object.entries(statuses).find(
+        ([, st]) => st.stage !== 'Offer'
+      );
+      if (!moving) return;
+      const [studentId, st] = moving;
+      const result = fieldLog.advanceInvite(studentId);
+      if (result?.moved) {
+        const name = students.find((s) => s.id === studentId)?.name || 'A candidate';
+        addToast(`${name} moved to "${result.stage}"`, result.stage === 'Offer' ? 'stamp' : 'xp');
+        announceXp(result, 'Pipeline');
+      }
+    }, 20000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentView, fieldLog.inviteStatus]);
+
+  const handleAdvanceInvite = (studentId) => {
+    const student = students.find((s) => s.id === studentId);
+    const result = fieldLog.advanceInvite(studentId);
+    if (!result) return;
+    if (result.moved) {
+      addToast(`${student?.name || 'Candidate'} moved to "${result.stage}"`, result.stage === 'Offer' ? 'stamp' : 'xp');
+      announceXp(result, 'Pipeline');
+    } else {
+      addToast(`${student?.name || 'Candidate'} is at the final stage.`);
+    }
+  };
+
   return (
     <div className="app-container">
       {/* Universal Sticky Header */}
@@ -212,6 +247,7 @@ export function App() {
               addToast('Peer review filed to your passport.');
               announceXp(result, 'Peer review');
             }}
+            onNoteActivity={fieldLog.noteTrailActivity}
             reviewedFocus={(fieldLog.reviews || []).find((r) => r.trailId === selectedTrailId)?.focus}
           />
         )}
@@ -232,6 +268,8 @@ export function App() {
             onToggleShortlist={handleToggleShortlist}
             onOpenInviteModal={handleOpenInviteModal}
             invitedStudents={invitedStudents}
+            inviteStatus={fieldLog.inviteStatus}
+            onAdvanceInvite={handleAdvanceInvite}
             filterShortlistedOnly={filterShortlistedOnly}
             setFilterShortlistedOnly={setFilterShortlistedOnly}
           />

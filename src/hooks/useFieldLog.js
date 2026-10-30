@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { XP_ACTIONS, STAMP_CATALOG, rankForXp, nextRankForXp, rankProgressPct, cqFromXp } from '../data/gamificationData';
+import { XP_ACTIONS, STAMP_CATALOG, INVITE_STAGES, rankForXp, nextRankForXp, rankProgressPct, cqFromXp } from '../data/gamificationData';
 
 const STORAGE_KEY = 'curiosity-passport-fieldlog';
 
@@ -25,8 +25,10 @@ function emptyLog() {
     // Field Office activity (steps 3+)
     attendance: {},   // { 'mon-standup': { choiceId, ts } }
     fieldNotes: [],   // completed quests: [{ questId, ts }]
-    reviews: [],      // logged peer reviews: [{ trailId, ts }]
+    reviews: [],      // logged peer reviews: [{ trailId, focus, ts }]
     inquiries: [],    // player-written next questions: [{ text, ts }]
+    exploredTrails: {}, // { [trailId]: { stagesRead, complete, firstTs, lastTs } }
+    inviteStatus: {}, // { [studentId]: { stage, sentTs } } — recruiter pipeline
   };
 }
 
@@ -138,6 +140,10 @@ export function useFieldLog() {
       if (willEarn) {
         updated.xp += XP_ACTIONS.invite.xp;
         updated.claimedOnce = { ...updated.claimedOnce, [`invite:${studentId}`]: { xp: XP_ACTIONS.invite.xp, ts: Date.now() } };
+        updated.inviteStatus = {
+          ...(l.inviteStatus || {}),
+          [studentId]: { stage: INVITE_STAGES[0], sentTs: Date.now() },
+        };
       }
       return updated;
     });
@@ -163,6 +169,7 @@ export function useFieldLog() {
     fieldNotes: logRef.current.fieldNotes,
     reviews: logRef.current.reviews,
     inquiries: logRef.current.inquiries,
+    inviteStatus: logRef.current.inviteStatus,
   });
 
   /**
@@ -208,6 +215,31 @@ export function useFieldLog() {
   };
 
   /**
+   * Recruiter pipeline: move an invite one stage forward (Sent → Replied →
+   * Interview → Offer). Idempotent at the last stage. Settles any stamps
+   * the new stage unlocks (In Conversation, Offers Maker). Returns
+   * { stage, moved, newStamps } or null if the student has no invite.
+   */
+  const advanceInvite = (studentId) => {
+    const cur = (logRef.current.inviteStatus || {})[studentId];
+    if (!cur) return null;
+    const idx = INVITE_STAGES.indexOf(cur.stage);
+    if (idx < 0 || idx >= INVITE_STAGES.length - 1) {
+      return { stage: cur.stage, moved: false, newStamps: [] };
+    }
+    const nextStage = INVITE_STAGES[idx + 1];
+    mutate((l) => ({
+      ...l,
+      inviteStatus: {
+        ...(l.inviteStatus || {}),
+        [studentId]: { ...l.inviteStatus[studentId], stage: nextStage, ts: Date.now() },
+      },
+    }));
+    const newStamps = settleStamps();
+    return { stage: nextStage, moved: true, newStamps };
+  };
+
+  /**
    * Field Office: complete a side quest → files a field note to your passport.
    */
   const completeQuest = (quest) => {
@@ -246,6 +278,30 @@ export function useFieldLog() {
       rankUp: rankAfter.index > rankBefore.index ? rankAfter : null,
       newStamps,
     };
+  };
+
+  /**
+   * Record trail activity for the "you" passport ledger: which stages have
+   * been read on each trail, and whether the trace was completed. No XP
+   * here — that is paid by award(). Pure bookkeeping for the portfolio.
+   */
+  const noteTrailActivity = (trailId, stageNumber, isComplete) => {
+    mutate((l) => {
+      const prev = (l.exploredTrails || {})[trailId];
+      const now = Date.now();
+      return {
+        ...l,
+        exploredTrails: {
+          ...(l.exploredTrails || {}),
+          [trailId]: {
+            stagesRead: Math.max(prev?.stagesRead || 0, stageNumber),
+            complete: prev?.complete || isComplete,
+            firstTs: prev?.firstTs || now,
+            lastTs: now,
+          },
+        },
+      };
+    });
   };
 
   /**
@@ -311,6 +367,8 @@ export function useFieldLog() {
     fieldNotes: log.fieldNotes || [],
     reviews: log.reviews || [],
     inquiries: log.inquiries || [],
+    exploredTrails: log.exploredTrails || {},
+    inviteStatus: log.inviteStatus || {},
     rank: rankForXp(xp),
     nextRank: nextRankForXp(xp),
     progressPct: rankProgressPct(xp),
@@ -323,6 +381,8 @@ export function useFieldLog() {
     completeQuest,
     logReview,
     writeInquiry,
+    noteTrailActivity,
+    advanceInvite,
     settleStamps,
     resetLog,
   };

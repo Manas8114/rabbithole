@@ -11,14 +11,17 @@ import {
   Building
 } from 'lucide-react';
 import { students } from '../data/studentsData';
+import { INVITE_STAGES } from '../data/gamificationData';
 
-export function EmployerDiscoveryView({ 
-  onNavigateToPassport, 
+export function EmployerDiscoveryView({
+  onNavigateToPassport,
   onNavigateToTrail,
-  shortlist, 
-  onToggleShortlist, 
+  shortlist,
+  onToggleShortlist,
   onOpenInviteModal,
   invitedStudents,
+  inviteStatus,
+  onAdvanceInvite,
   filterShortlistedOnly,
   setFilterShortlistedOnly
 }) {
@@ -239,23 +242,38 @@ export function EmployerDiscoveryView({
                       <span className="passport-stamp" style={{ padding: '0.3rem 0.65rem' }}>
                         <span className="passport-stamp-code">{student.badge} • CQ {student.stats.cqIndex}</span>
                       </span>
-                      {isInvited && (
-                        <span style={{ 
-                          marginLeft: '0.5rem',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.3rem',
-                          padding: '0.3rem 0.65rem',
-                          borderRadius: '9999px',
-                          backgroundColor: 'var(--forest-100)',
-                          color: 'var(--forest-700)',
-                          fontSize: '0.75rem',
-                          fontWeight: 600
-                        }}>
-                          <CheckCircle2 size={13} /> Invited
-                        </span>
-                      )}
                     </div>
+
+                    {/* Recruiter Pipeline — where this candidate stands after an invite */}
+                    {isInvited && (() => {
+                      const status = inviteStatus?.[student.id];
+                      const stage = status?.stage || INVITE_STAGES[0];
+                      const stageIdx = Math.max(0, INVITE_STAGES.indexOf(stage));
+                      const atEnd = stageIdx >= INVITE_STAGES.length - 1;
+                      return (
+                        <div className="invite-pipeline" style={{ marginBottom: '1rem' }}>
+                          <div className="invite-pipeline-label">
+                            Outreach pipeline · auto-advances in this demo
+                          </div>
+                          <div className="invite-pipeline-stages">
+                            {INVITE_STAGES.map((s, i) => (
+                              <div key={s} className={`pipeline-stage ${i <= stageIdx ? 'reached' : ''} ${i === stageIdx ? 'current' : ''}`}>
+                                {i < stageIdx && <CheckCircle2 size={11} />}
+                                {s}
+                              </div>
+                            ))}
+                          </div>
+                          <button
+                            className="btn btn-secondary btn-sm invite-advance-btn"
+                            onClick={() => onAdvanceInvite?.(student.id)}
+                            disabled={atEnd}
+                            style={{ opacity: atEnd ? 0.5 : 1 }}
+                          >
+                            {atEnd ? 'At final stage' : `Advance to ${INVITE_STAGES[stageIdx + 1]}`}
+                          </button>
+                        </div>
+                      );
+                    })()}
 
                     {/* Active Curiosity Inquiry Spotlight (or their filed question) */}
                     {primaryTrail ? (

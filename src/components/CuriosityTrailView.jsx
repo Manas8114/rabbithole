@@ -28,6 +28,7 @@ export function CuriosityTrailView({
   onShowToast,
   onAwardXp,
   onLogReview,
+  onNoteActivity,
   reviewedFocus
 }) {
   const trail = getTrailById(trailId);
@@ -51,6 +52,7 @@ export function CuriosityTrailView({
   useEffect(() => {
     onAwardXp?.(`openTrail:${trailId}`, 'Trail filed');
     onAwardXp?.(`readStage:${trailId}:stage-1`, 'Stage documented');
+    onNoteActivity?.(trailId, 1, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trailId]);
 
@@ -59,9 +61,11 @@ export function CuriosityTrailView({
   const selectNode = (index) => {
     if (index < 0 || index > (trail.nodes?.length || 1) - 1) return;
     setActiveNodeIndex(index);
-    onAwardXp?.(`readStage:${trailId}:stage-${index + 1}`, 'Stage documented');
     const nodeCount = trail.nodes?.length || 1;
-    if (index === nodeCount - 1 && nodeCount > 1) {
+    const isComplete = index === nodeCount - 1 && nodeCount > 1;
+    onAwardXp?.(`readStage:${trailId}:stage-${index + 1}`, 'Stage documented');
+    onNoteActivity?.(trailId, index + 1, isComplete);
+    if (isComplete) {
       onAwardXp?.(`completeTrail:${trailId}`, 'Inquiry trace complete');
     }
   };

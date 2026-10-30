@@ -22,6 +22,8 @@ import {
   FlaskConical,
   PenLine,
   CheckCircle2,
+  MessageSquare,
+  Trophy,
 } from 'lucide-react';
 
 // The career track your field log climbs through. Thresholds are cumulative XP.
@@ -192,6 +194,25 @@ export const STAMP_CATALOG = [
     desc: 'Write your own next question onto your passport.',
     check: (s) => (s.inquiries?.length || 0) >= 1,
   },
+  {
+    id: 'in-conversation',
+    name: 'In Conversation',
+    stampCode: 'SEAL-013',
+    icon: 'MessageSquare',
+    bonusXp: 30,
+    desc: 'Move a recruiter conversation past the first reply.',
+    check: (s) =>
+      Object.values(s.inviteStatus || {}).some((st) => ['Replied', 'Interview', 'Offer'].includes(st.stage)),
+  },
+  {
+    id: 'offers-maker',
+    name: 'Offers Maker',
+    stampCode: 'SEAL-014',
+    icon: 'Trophy',
+    bonusXp: 80,
+    desc: 'Land two candidates at the Offer stage of the pipeline.',
+    check: (s) => Object.values(s.inviteStatus || {}).filter((st) => st.stage === 'Offer').length >= 2,
+  },
 ];
 
 export const STAMP_ICONS = {
@@ -208,6 +229,8 @@ export const STAMP_ICONS = {
   ClipboardCheck,
   PenLine,
   CheckCircle2,
+  MessageSquare,
+  Trophy,
 };
 
 // ===========================================================================
@@ -349,6 +372,11 @@ export const QUESTS = [
     note: 'Artifact published to the cohort workspace — two peers have already forked it.',
   },
 ];
+
+// Recruiter outreach pipeline: the demo lifecycle an invite moves through
+// after it is sent (a timer auto-advances it; the recruiter can also advance
+// it by hand in the employer view).
+export const INVITE_STAGES = ['Sent', 'Replied', 'Interview', 'Offer'];
 
 // Extra stamps unlocked by Field Office activity.
 export const MEETING_ICONS = {
