@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { X, Lock, RotateCcw, Download, Upload, FileText } from 'lucide-react';
+import { X, Lock, RotateCcw, Download, Upload, FileText, PackageOpen } from 'lucide-react';
 import { STAMP_CATALOG, STAMP_ICONS } from '../data/gamificationData';
 
 /**
@@ -17,12 +17,14 @@ export function StampCollectionModal({
   onExport,
   onImportFile,
   onOpenReport,
+  onSeedDemo,
 }) {
+  // Unconditional (before the early return) — hook order must be stable.
+  const fileInput = useRef(null);
   if (!isOpen) return null;
 
   const earnedSet = new Set(earnedStamps || []);
   const earnedCount = earnedSet.size;
-  const fileInput = useRef(null);
 
   return (
     <div className="modal-overlay stamp-modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
@@ -102,12 +104,28 @@ export function StampCollectionModal({
               </button>
             </div>
           </div>
-          {onResetLog && (
-            <button onClick={onResetLog} className="btn btn-sm" style={{ background: 'none', border: 'none', color: 'var(--ink-500)', fontSize: '0.75rem', cursor: 'pointer' }}>
-              <RotateCcw size={13} style={{ display: 'inline', verticalAlign: '-2px' }} />
-              <span> Reset field log</span>
-            </button>
-          )}
+          <div className="stamp-footer-demo">
+            {onSeedDemo && (
+              <button
+                onClick={onSeedDemo}
+                className="btn btn-secondary btn-sm"
+                title="Replace the current log with a rich sample portfolio so every screen has content"
+              >
+                <PackageOpen size={14} />
+                <span>Load demo portfolio</span>
+              </button>
+            )}
+            {onResetLog && (
+              <button
+                onClick={onResetLog}
+                className="btn btn-sm"
+                style={{ background: 'none', border: 'none', color: 'var(--ink-500)', fontSize: '0.75rem', cursor: 'pointer' }}
+              >
+                <RotateCcw size={13} style={{ display: 'inline', verticalAlign: '-2px' }} />
+                <span> Reset field log</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

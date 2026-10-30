@@ -256,6 +256,16 @@ export function App() {
     }
   };
 
+  const handleSeedDemo = () => {
+    const result = fieldLog.seedDemo();
+    addToast(
+      `Demo portfolio loaded · ${result.xp} XP, ${result.newStamps.length} seals.`,
+      'stamp'
+    );
+    announceXp(result, 'Demo portfolio');
+    setStampModalOpen(false);
+  };
+
   return (
     <div className="app-container">
       {/* Universal Sticky Header */}
@@ -374,6 +384,7 @@ export function App() {
         onExport={handleExportLog}
         onImportFile={handleImportLog}
         onOpenReport={() => setReportOpen(true)}
+        onSeedDemo={handleSeedDemo}
       />
 
       {/* The printable one-page portfolio */}

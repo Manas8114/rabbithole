@@ -165,6 +165,129 @@ export function useFieldLog() {
   };
 
   /**
+   * Load a rich demo portfolio in one shot — the "show it working" button.
+   * The log is built as data (not by replaying every action), and its XP is
+   * chosen so the settled stamps add up to exactly that total, keeping the
+   * rank and CQ numbers honest.
+   */
+  const seedDemo = () => {
+    const log = emptyLog();
+    // Seed timestamps back-dated from "now"; the event-handler runs off
+    // render, so Date.now() is safe here (the purity rule just can't tell).
+    // eslint-disable-next-line react/purity
+    const now = Date.now();
+    const day = 86_400_000;
+
+    const openTrails = [
+      'sustainable-fashion',
+      'reverse-logistics',
+      'carbon-accounting',
+      'icu-alarm-fatigue',
+      'ambient-audio-scribing',
+      'multi-modal-latency',
+      'mycelium-cold-chain',
+      'cotton-trash-substrate',
+      'bio-foam-waterproofing',
+    ];
+    const stageCounts = {
+      'sustainable-fashion': 6,
+      'reverse-logistics': 4,
+      'carbon-accounting': 2,
+      'icu-alarm-fatigue': 4,
+      'ambient-audio-scribing': 3,
+      'multi-modal-latency': 4,
+      'mycelium-cold-chain': 4,
+      'cotton-trash-substrate': 4,
+      'bio-foam-waterproofing': 3,
+    };
+
+    // Trail openings, reads, and completions.
+    log.claimedOnce = {};
+    log.exploredTrails = {};
+    for (const id of openTrails) {
+      log.claimedOnce[`openTrail:${id}`] = { xp: XP_ACTIONS.openTrail.xp, ts: now - 3 * day };
+      log.exploredTrails[id] = {
+        stagesRead: stageCounts[id],
+        complete: id === 'sustainable-fashion' || id === 'mycelium-cold-chain',
+        firstTs: now - 5 * day,
+        lastTs: now - day,
+      };
+      for (let i = 1; i <= stageCounts[id]; i += 1) {
+        log.claimedOnce[`readStage:${id}:stage-${i}`] = { xp: XP_ACTIONS.readStage.xp, ts: now - 2 * day };
+      }
+    }
+    for (const id of ['sustainable-fashion', 'mycelium-cold-chain']) {
+      log.claimedOnce[`completeTrail:${id}`] = { xp: XP_ACTIONS.completeTrail.xp, ts: now - day };
+    }
+
+    // A week of meetings, each with its follow-up choice (week 1, full pay).
+    const choiceXp = {
+      'mon-standup': 'pool-data',
+      'mentor-1on1': 'decision',
+      'demo-day-prep': 'pitch-next',
+      'career-panel': 'ask-failure',
+      'recruiter-coffee': 'lead-question',
+      'lab-open': 'replicate',
+    };
+    const choiceTable = {
+      'mon-standup': 15, 'mentor-1on1': 20, 'demo-day-prep': 20,
+      'career-panel': 20, 'recruiter-coffee': 20, 'lab-open': 15,
+    };
+    for (const [mid, choiceId] of Object.entries(choiceXp)) {
+      log.attendance[mid] = { ts: now - 2 * day, week: 1, choiceId };
+      log.claimedOnce[`attend:${mid}:w1`] = { xp: 25, ts: now - 2 * day };
+      // choiceTable is keyed by MEETING id (the selected choice's XP), not
+      // by the choice id — using the choice id here would yield undefined.
+      log.claimedOnce[`choice:${mid}:${choiceId}`] = { xp: choiceTable[mid], ts: now - 2 * day };
+    }
+    log.attendanceTotal = 6;
+
+    // Two filed side quests.
+    log.fieldNotes = [
+      { questId: 'q-teardown-10k', ts: now - 4 * day },
+      { questId: 'q-field-note', ts: now - 4 * day },
+    ];
+    log.claimedOnce['quest:q-teardown-10k'] = { xp: 40, ts: now - 4 * day };
+    log.claimedOnce['quest:q-field-note'] = { xp: 20, ts: now - 4 * day };
+
+    // A peer review on a classmate's trail.
+    log.reviews = [{ trailId: 'multi-modal-latency', focus: 'The 600ms flow-break threshold is the sharpest insight in the set', ts: now - 3 * day }];
+    log.claimedOnce['review:multi-modal-latency'] = { xp: 30, ts: now - 3 * day };
+
+    // One open question written onto the player's passport.
+    log.inquiries = [{ text: 'Do ambient scribing devices change how much patients volunteer, once the first few consultations settle?', ts: now - day }];
+    log.claimedOnce['inquiry:Do ambient scribing devices change how much patients volunteer, once the first few consultations settle?'] = { xp: 15, ts: now - day };
+
+    // Recruiter pipeline mid-flight: one offer, one interview, one reply.
+    const stages = {
+      'priya-chen': 'Offer',
+      'marcus-vance': 'Interview',
+      'alex-morgan': 'Replied',
+    };
+    log.invited = Object.keys(stages);
+    log.inviteStatus = {};
+    log.shortlist = ['alex-morgan', 'priya-chen', 'marcus-vance'];
+    for (const [sid, stage] of Object.entries(stages)) {
+      log.claimedOnce[`invite:${sid}`] = { xp: XP_ACTIONS.invite.xp, ts: now - 6 * day };
+      log.claimedOnce[`shortlist:${sid}`] = { xp: XP_ACTIONS.shortlist.xp, ts: now - 6 * day };
+      log.inviteStatus[sid] = { stage, sentTs: now - 6 * day, ts: now - day };
+    }
+
+    // Streak: yesterday plus today.
+    log.streak = 2;
+    log.lastVisitDay = todayStr();
+
+    // Total the action XP that the claimed keys imply, so the rank ladder
+    // and CQ read honestly off the seeded activity. Stamp bonuses are then
+    // added on top by the real settleStamps() — the same path the app uses.
+    log.xp = Object.values(log.claimedOnce).reduce((sum, c) => sum + c.xp, 0);
+
+    mutate(() => log);
+    const settled = settleStamps();
+    return { seeded: true, xp: logRef.current.xp, newStamps: settled };
+  };
+
+  /**
    * Export the field log as a JSON blob and trigger a browser download.
    * The file is versioned so future imports can migrate.
    */
@@ -510,6 +633,7 @@ export function useFieldLog() {
     markPassportVisit,
     settleStamps,
     resetLog,
+    seedDemo,
     exportFieldLog,
     importFieldLog,
   };

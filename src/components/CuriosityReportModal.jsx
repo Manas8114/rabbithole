@@ -3,6 +3,10 @@ import { X, Printer, Compass } from 'lucide-react';
 import { STAMP_CATALOG, STAMP_ICONS } from '../data/gamificationData';
 import { trailsData } from '../data/curiosityTrailData';
 
+// Page-load date, formatted once at module scope: the printed report's
+// "Field Log Report · <date>" line, stable across re-renders.
+const GENERATED_ON = new Date().toLocaleDateString();
+
 /**
  * The Curiosity Report: a printable, one-page career document assembled from
  * the field log. It is the carry-able artifact — the thing a student hands a
@@ -54,7 +58,7 @@ export function CuriosityReportModal({ isOpen, onClose, fieldLog }) {
               </div>
               <div>
                 <div className="report-doc-title">CURIOSITY PASSPORT</div>
-                <div className="report-doc-sub">Field Log Report · {new Date().toLocaleDateString()}</div>
+                <div className="report-doc-sub">Field Log Report · {GENERATED_ON}</div>
               </div>
             </div>
             <div className="report-doc-meta">

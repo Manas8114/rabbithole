@@ -3861,3 +3861,14 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
   gap: 0.6rem;
 }
+
+/* Stamp collection footer: demo + reset controls row */
+.stamp-footer-demo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed rgba(var(--border-ink), 0.18);
+}

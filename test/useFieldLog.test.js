@@ -7,7 +7,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useFieldLog } from '../src/hooks/useFieldLog';
-import { MEETINGS, QUESTS, INVITE_STAGES, XP_ACTIONS } from '../src/data/gamificationData';
+import { MEETINGS, QUESTS, INVITE_STAGES, XP_ACTIONS, STAMP_CATALOG } from '../src/data/gamificationData';
+
+// Stamp id -> bonusXp, for asserting that a seed's total XP is honest.
+const STAMP_BONUS = Object.fromEntries(STAMP_CATALOG.map((s) => [s.id, s.bonusXp]));
 
 const STORAGE_KEY = 'curiosity-passport-fieldlog';
 
@@ -309,5 +312,34 @@ describe('streaks', () => {
     expect(log.earnedStamps).not.toContain('streak-3');
     actRun(() => log.settleStamps());
     expect(log.earnedStamps).toContain('streak-3');
+  });
+});
+
+describe('demo seed', () => {
+  it('loads a rich log whose XP equals claimed actions plus stamp bonuses', () => {
+    const log = mount();
+    actRun(() => log.seedDemo());
+    const claimed = Object.entries(log.log.claimedOnce)
+      .filter(([k]) => !k.startsWith('stamp:'))
+      .reduce((sum, [, c]) => sum + c.xp, 0);
+    const bonuses = log.earnedStamps.reduce((sum, id) => sum + STAMP_BONUS[id], 0);
+    // XP must be exactly the claimed actions plus every settled stamp bonus.
+    expect(log.xp).toBe(claimed + bonuses);
+    // And it must actually drive rank/cq upward.
+    expect(log.rank.name).not.toBe('Novice Cartographer');
+    expect(log.cq).toBeGreaterThan(10);
+  });
+
+  it('seeds a full pipeline and attendance, leaving two stamps unearned by design', () => {
+    const log = mount();
+    actRun(() => log.seedDemo());
+    expect(Object.keys(log.inviteStatus)).toHaveLength(3);
+    expect(log.inviteStatus['priya-chen'].stage).toBe('Offer');
+    expect(log.attendanceTotal).toBe(6);
+    // offers-maker needs TWO candidates at Offer; the seed holds exactly one.
+    expect(log.earnedStamps).not.toContain('offers-maker');
+    // reliable needs a completed week; the seed leaves week 1 open.
+    expect(log.earnedStamps).not.toContain('reliable');
+    expect(log.tourDone).toBe(false);
   });
 });
