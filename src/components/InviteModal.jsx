@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Send, Sparkles } from 'lucide-react';
+import { useModalBehavior } from '../hooks/useModalBehavior';
 
 function buildNote(student) {
   return `Hi ${student?.name || 'there'},\n\nI came across your Curiosity Passport and was thoroughly impressed by your independent investigation into "${student?.trails?.[0]?.question || 'your latest inquiries'}". Your rigor in analyzing unit economics and talking directly to operators stands out. We would love to set up an exploratory conversation with our strategy team.`;
@@ -117,10 +118,12 @@ function InviteForm({ student, onClose, onSendInvite }) {
 }
 
 export function InviteModal({ isOpen, student, onClose, onSendInvite }) {
-  if (!isOpen || !student) return null;
+  const open = isOpen && !!student;
+  const dialogRef = useModalBehavior(open, onClose);
+  if (!open) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div ref={dialogRef} className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
       <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">
@@ -128,7 +131,7 @@ export function InviteModal({ isOpen, student, onClose, onSendInvite }) {
             <span className="mono-stamp" style={{ color: 'var(--brass-300)', display: 'block', marginBottom: '0.2rem' }}>
               DEMO RECRUITER OUTREACH
             </span>
-            <h3>Invite {student.name} to Connect</h3>
+            <h3 id="invite-modal-title">Invite {student.name} to Connect</h3>
           </div>
           <button onClick={onClose} className="modal-close-btn" aria-label="Close modal">
             <X size={20} />

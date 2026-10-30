@@ -3872,3 +3872,54 @@ h1, h2, h3, h4, h5, h6 {
   padding-top: 0.75rem;
   border-top: 1px dashed rgba(var(--border-ink), 0.18);
 }
+
+/* ==========================================================================
+   Accessibility: visible keyboard focus + reduced-motion
+   ========================================================================== */
+
+/* A visible focus ring for keyboard users only (not for mouse clicks). */
+:focus-visible {
+  outline: 3px solid var(--brass-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Users who prefer reduced motion get none of the decorative movement —
+   the content and state changes still happen, they just stop animating. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Skip-to-content link: visually hidden until keyboard focus, then it
+   jumps past the sticky header straight to the main content. */
+.skip-link {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 9999;
+  transform: translateY(-200%);
+  background-color: var(--forest-900);
+  color: var(--cream-50);
+  padding: 0.5rem 0.9rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 150ms ease;
+}
+.skip-link:focus {
+  transform: translateY(0);
+  outline: 3px solid var(--brass-500);
+  outline-offset: 2px;
+}

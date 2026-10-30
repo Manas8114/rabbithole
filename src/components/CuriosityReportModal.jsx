@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Printer, Compass } from 'lucide-react';
 import { STAMP_CATALOG, STAMP_ICONS } from '../data/gamificationData';
 import { trailsData } from '../data/curiosityTrailData';
+import { useModalBehavior } from '../hooks/useModalBehavior';
 
 // Page-load date, formatted once at module scope: the printed report's
 // "Field Log Report · <date>" line, stable across re-renders.
@@ -14,6 +15,7 @@ const GENERATED_ON = new Date().toLocaleDateString();
  * report via the @media print rules in index.css.
  */
 export function CuriosityReportModal({ isOpen, onClose, fieldLog }) {
+  const dialogRef = useModalBehavior(isOpen, onClose);
   if (!isOpen) return null;
 
   const explored = Object.entries(fieldLog.exploredTrails || {}).map(([id, rec]) => ({
@@ -26,14 +28,14 @@ export function CuriosityReportModal({ isOpen, onClose, fieldLog }) {
   const inquiries = fieldLog.inquiries || [];
 
   return (
-    <div className="modal-overlay report-overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div ref={dialogRef} className="modal-overlay report-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="curiosity-report-title">
       <div className="modal-dialog report-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="report-toolbar no-print">
           <div>
             <span className="mono-stamp" style={{ color: 'var(--brass-300)', display: 'block', marginBottom: '0.2rem' }}>
               CARRYABLE ARTIFACT
             </span>
-            <h3>Curiosity Report</h3>
+            <h3 id="curiosity-report-title">Curiosity Report</h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--ink-600)', marginTop: '0.25rem' }}>
               A one-page record of your field log. Print it or save it as a PDF to share.
             </p>

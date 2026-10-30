@@ -5,7 +5,7 @@ export function Toast({ toasts, onDismiss }) {
   if (!toasts || toasts.length === 0) return null;
 
   return (
-    <div className="toast-container" aria-live="polite">
+    <div className="toast-container" role="alert" aria-live="polite">
       {toasts.map((toast) => (
         <div key={toast.id} className={`toast-pill ${toast.tone ? `toast-${toast.tone}` : ''}`}>
           {toast.tone === 'rankup' ? (

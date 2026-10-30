@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { X, Lock, RotateCcw, Download, Upload, FileText, PackageOpen } from 'lucide-react';
 import { STAMP_CATALOG, STAMP_ICONS } from '../data/gamificationData';
+import { useModalBehavior } from '../hooks/useModalBehavior';
 
 /**
  * The stamp collection — every achievement in the catalog, rendered as
@@ -21,20 +22,21 @@ export function StampCollectionModal({
 }) {
   // Unconditional (before the early return) — hook order must be stable.
   const fileInput = useRef(null);
+  const dialogRef = useModalBehavior(isOpen, onClose);
   if (!isOpen) return null;
 
   const earnedSet = new Set(earnedStamps || []);
   const earnedCount = earnedSet.size;
 
   return (
-    <div className="modal-overlay stamp-modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div ref={dialogRef} className="modal-overlay stamp-modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="stamp-collection-title">
       <div className="modal-dialog stamp-collection-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
             <span className="mono-stamp" style={{ color: 'var(--brass-300)', display: 'block', marginBottom: '0.2rem' }}>
               FIELD OFFICE RECORDS
             </span>
-            <h3>
+            <h3 id="stamp-collection-title">
               Stamp Collection{' '}
               <span className="stamp-collection-count">{earnedCount}/{STAMP_CATALOG.length}</span>
             </h3>

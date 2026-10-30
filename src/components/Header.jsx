@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Compass, Bookmark, Menu, X } from 'lucide-react';
 import { RankMeter } from './RankMeter';
 import { ThemeToggle } from './ThemeToggle';
+import { scrollToTop } from '../lib/scrollToTop';
 
 export function Header({ currentView, setCurrentView, shortlistCount, onOpenShortlist, fieldLog, onOpenStamps, theme, onToggleTheme }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -17,18 +18,25 @@ export function Header({ currentView, setCurrentView, shortlistCount, onOpenShor
   const handleNavClick = (viewId) => {
     setCurrentView(viewId);
     setMobileMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   return (
     <header className="site-header">
       <div className="content-wrap site-header-inner">
         {/* Brand Seal */}
-        <div 
-          className="brand-badge" 
+        <div
+          className="brand-badge"
           onClick={() => handleNavClick('landing')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleNavClick('landing');
+            }
+          }}
           role="button"
           tabIndex={0}
+          aria-label="Return to Curiosity Passport Home"
           title="Return to Curiosity Passport Home"
         >
           <div className="brand-icon-seal">
@@ -47,6 +55,7 @@ export function Header({ currentView, setCurrentView, shortlistCount, onOpenShor
               key={item.id}
               onClick={() => handleNavClick(item.id)}
               className={`nav-link-btn ${currentView === item.id ? 'active' : ''}`}
+              aria-current={currentView === item.id ? 'page' : undefined}
             >
               {item.label}
             </button>
@@ -114,6 +123,7 @@ export function Header({ currentView, setCurrentView, shortlistCount, onOpenShor
             <button
               key={item.id}
               onClick={() => handleNavClick(item.id)}
+              aria-current={currentView === item.id ? 'page' : undefined}
               style={{
                 textAlign: 'left',
                 padding: '0.75rem 1rem',

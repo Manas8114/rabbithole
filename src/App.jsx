@@ -14,6 +14,7 @@ import { CuriosityReportModal } from './components/CuriosityReportModal';
 import { Toast } from './components/Toast';
 import { students } from './data/studentsData';
 import { useFieldLog } from './hooks/useFieldLog';
+import { scrollToTop } from './lib/scrollToTop';
 
 // Initial theme: persisted choice wins, otherwise follow the OS preference.
 // index.html also runs this read before paint to avoid a flash.
@@ -110,30 +111,30 @@ export function App() {
   const handleNavigateToPassport = (studentId = 'alex-morgan') => {
     setSelectedStudentId(studentId);
     setCurrentView('passport');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleNavigateToTrail = (trailId = 'sustainable-fashion') => {
     setSelectedTrailId(trailId);
     setCurrentView('trail');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleNavigateToEmployer = () => {
     setCurrentView('employer');
     setFilterShortlistedOnly(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleNavigateToOffice = () => {
     setCurrentView('office');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const handleOpenShortlistFromHeader = () => {
     setCurrentView('employer');
     setFilterShortlistedOnly(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   // Shortlist toggle — persisted via the field log; additions award XP.
@@ -268,13 +269,16 @@ export function App() {
 
   return (
     <div className="app-container">
+      {/* Keyboard/screen-reader shortcut past the navigation */}
+      <a className="skip-link" href="#main-content">Skip to content</a>
+
       {/* Universal Sticky Header */}
       <Header
         currentView={currentView}
         setCurrentView={(view) => {
           setCurrentView(view);
           if (view === 'employer') setFilterShortlistedOnly(false);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          scrollToTop();
         }}
         shortlistCount={shortlist.length}
         onOpenShortlist={handleOpenShortlistFromHeader}
@@ -285,7 +289,7 @@ export function App() {
       />
 
       {/* View Router */}
-      <main className="main-content">
+      <main id="main-content" className="main-content">
         {currentView === 'landing' && (
           <>
             <LandingView
