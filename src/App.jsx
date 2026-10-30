@@ -9,6 +9,7 @@ import { FieldOfficeView } from './components/FieldOfficeView';
 import { InviteModal } from './components/InviteModal';
 import { StampCollectionModal } from './components/StampCollectionModal';
 import { RankUpModal } from './components/RankUpModal';
+import { TourBriefingCard } from './components/TourBriefingCard';
 import { Toast } from './components/Toast';
 import { students } from './data/studentsData';
 import { useFieldLog } from './hooks/useFieldLog';
@@ -97,6 +98,12 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Opening the player's own passport counts toward the guided tour.
+  useEffect(() => {
+    if (selectedStudentId === 'you') fieldLog.markPassportVisit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStudentId]);
+
   // Navigation handlers
   const handleNavigateToPassport = (studentId = 'alex-morgan') => {
     setSelectedStudentId(studentId);
@@ -113,6 +120,11 @@ export function App() {
   const handleNavigateToEmployer = () => {
     setCurrentView('employer');
     setFilterShortlistedOnly(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateToOffice = () => {
+    setCurrentView('office');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -189,6 +201,43 @@ export function App() {
     }
   };
 
+  // Guided tour goals — each ticks off as the underlying log facts land.
+  const exploredTrails = fieldLog.exploredTrails || {};
+  const tourGoals = [
+    {
+      id: 'trail',
+      label: 'Open a trail and read 2+ stages',
+      done: Object.values(exploredTrails).some((t) => (t.stagesRead || 0) >= 2),
+      action: () => handleNavigateToTrail('sustainable-fashion'),
+    },
+    {
+      id: 'meeting',
+      label: 'Check into a Field Office meeting',
+      done: (fieldLog.attendanceTotal || 0) >= 1,
+      action: () => handleNavigateToOffice(),
+    },
+    {
+      id: 'invite',
+      label: 'Send a recruiter invite',
+      done: (fieldLog.invited || []).length >= 1,
+      action: () => handleNavigateToEmployer(),
+    },
+    {
+      id: 'you',
+      label: 'Open your own passport',
+      done: !!fieldLog.yourPassportVisited,
+      action: () => handleNavigateToPassport('you'),
+    },
+  ];
+
+  const handleCompleteTour = () => {
+    const result = fieldLog.completeTour();
+    addToast('Tour complete — Wayfinder stamp in your collection.');
+    announceXp(result, 'Tour complete');
+  };
+
+  const handleSkipTour = () => fieldLog.skipTour();
+
   return (
     <div className="app-container">
       {/* Universal Sticky Header */}
@@ -210,11 +259,20 @@ export function App() {
       {/* View Router */}
       <main className="main-content">
         {currentView === 'landing' && (
-          <LandingView
-            onNavigateToPassport={handleNavigateToPassport}
-            onNavigateToTrail={handleNavigateToTrail}
-            onNavigateToEmployer={handleNavigateToEmployer}
-          />
+          <>
+            <LandingView
+              onNavigateToPassport={handleNavigateToPassport}
+              onNavigateToTrail={handleNavigateToTrail}
+              onNavigateToEmployer={handleNavigateToEmployer}
+            />
+            {/* First-visit 90-second tour — hides itself once finished or skipped */}
+            <TourBriefingCard
+              fieldLog={fieldLog}
+              goals={tourGoals}
+              onComplete={handleCompleteTour}
+              onSkip={handleSkipTour}
+            />
+          </>
         )}
 
         {currentView === 'passport' && (

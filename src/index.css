@@ -3530,3 +3530,92 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 52ch;
   line-height: 1.5;
 }
+
+/* ==========================================================================
+   Guided tour briefing card (landing view, first visit only)
+   ========================================================================== */
+.tour-card {
+  margin: 2rem auto 0;
+  max-width: 720px;
+  background: var(--cream-card);
+  border: 1px solid rgba(var(--border-ink), 0.12);
+  border-left: 4px solid var(--brass-500);
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="dark"] .tour-card {
+  border-left-color: var(--brass-400);
+}
+
+.tour-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.tour-card-head h3 {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--ink-950);
+}
+
+.tour-card-copy {
+  font-size: 0.9rem;
+  color: var(--ink-600);
+  line-height: 1.55;
+  margin-bottom: 1rem;
+}
+
+.tour-goals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.tour-goal {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-800);
+  background-color: var(--cream-50);
+  border: 1px solid rgba(var(--border-ink), 0.12);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  transition: all var(--trans-fast);
+}
+
+.tour-goal:hover:not(:disabled) {
+  border-color: var(--brass-400);
+  transform: translateY(-1px);
+}
+
+.tour-goal.done {
+  background: linear-gradient(160deg, var(--forest-50) 0%, var(--cream-card) 100%);
+  border-color: var(--forest-300);
+  color: var(--forest-800);
+  cursor: default;
+}
+
+[data-theme="dark"] .tour-goal.done {
+  color: var(--forest-700);
+  border-color: var(--forest-700);
+}
+
+.tour-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tour-skip-btn {
+  font-size: 0.8125rem;
+}

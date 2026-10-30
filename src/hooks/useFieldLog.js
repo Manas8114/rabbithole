@@ -32,6 +32,9 @@ function emptyLog() {
     week: 1,            // which working week the Field Office is showing
     completedWeeks: [],
     attendanceTotal: 0, // lifetime meeting check-ins (stamps count this)
+    tourDone: false,    // 90-second guided tour finished (all goals met)
+    tourSkipped: false, // user dismissed the briefing instead
+    yourPassportVisited: false,
   };
 }
 
@@ -176,6 +179,8 @@ export function useFieldLog() {
     week: logRef.current.week,
     completedWeeks: logRef.current.completedWeeks,
     attendanceTotal: logRef.current.attendanceTotal,
+    tourDone: logRef.current.tourDone,
+    yourPassportVisited: logRef.current.yourPassportVisited,
   });
 
   /**
@@ -232,6 +237,31 @@ export function useFieldLog() {
       rankUp: choiceResult.rankUp || atResult.rankUp,
       newStamps: [...atResult.newStamps, ...choiceResult.newStamps],
     };
+  };
+
+  /**
+   * Guided tour: record that the player opened their own "you" passport.
+   */
+  const markPassportVisit = () => {
+    if (logRef.current.yourPassportVisited) return;
+    mutate((l) => ({ ...l, yourPassportVisited: true }));
+  };
+
+  /**
+   * Guided tour: mark it complete (pays a one-shot 50 XP bonus) or skip it.
+   * Either way the briefing card is not shown again.
+   */
+  const completeTour = () => {
+    if (logRef.current.tourDone || logRef.current.tourSkipped) {
+      return { earned: 0, xp: logRef.current.xp, rankUp: null, newStamps: [] };
+    }
+    const result = awardOnce('tour:complete', 50, (l) => ({ ...l, tourDone: true }));
+    return result;
+  };
+
+  const skipTour = () => {
+    if (logRef.current.tourDone || logRef.current.tourSkipped) return;
+    mutate((l) => ({ ...l, tourSkipped: true }));
   };
 
   /**
@@ -411,6 +441,9 @@ export function useFieldLog() {
     week: log.week || 1,
     completedWeeks: log.completedWeeks || [],
     attendanceTotal: log.attendanceTotal || 0,
+    tourDone: log.tourDone || false,
+    tourSkipped: log.tourSkipped || false,
+    yourPassportVisited: log.yourPassportVisited || false,
     rank: rankForXp(xp),
     nextRank: nextRankForXp(xp),
     progressPct: rankProgressPct(xp),
@@ -426,6 +459,9 @@ export function useFieldLog() {
     writeInquiry,
     noteTrailActivity,
     advanceInvite,
+    completeTour,
+    skipTour,
+    markPassportVisit,
     settleStamps,
     resetLog,
   };

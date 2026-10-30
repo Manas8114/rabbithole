@@ -222,6 +222,15 @@ export const STAMP_CATALOG = [
     desc: 'Land two candidates at the Offer stage of the pipeline.',
     check: (s) => Object.values(s.inviteStatus || {}).filter((st) => st.stage === 'Offer').length >= 2,
   },
+  {
+    id: 'wayfinder',
+    name: 'Wayfinder',
+    stampCode: 'SEAL-016',
+    icon: 'Compass',
+    bonusXp: 50,
+    desc: 'Finish the 90-second guided tour of the whole platform.',
+    check: (s) => !!s.tourDone,
+  },
 ];
 
 export const STAMP_ICONS = {
