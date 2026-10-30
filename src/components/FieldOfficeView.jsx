@@ -20,10 +20,15 @@ import { MEETINGS, QUESTS, MEETING_ICONS } from '../data/gamificationData';
 export function FieldOfficeView({ fieldLog, onShowToast, onAwardLabel }) {
   const [activeMeetingId, setActiveMeetingId] = useState(null);
   const attendance = fieldLog.attendance || {};
+  const week = fieldLog.week || 1;
   const activeMeeting = MEETINGS.find((m) => m.id === activeMeetingId) || MEETINGS[0];
 
+  // A meeting counts as attended THIS week only — re-attending after a week
+  // rollover (week > 1) pays reduced XP and shows a "re-check-in" prompt.
+  const attendedThisWeek = (id) => !!attendance[id] && (attendance[id].week || 1) === week;
+
   // Today's focus: the next un-attended meeting, else the first open quest.
-  const nextMeeting = MEETINGS.find((m) => !attendance[m.id]);
+  const nextMeeting = MEETINGS.find((m) => !attendedThisWeek(m.id));
   const nextQuest = QUESTS.find((q) => !(fieldLog.fieldNotes || []).some((n) => n.questId === q.id));
   const focus = nextMeeting
     ? { kind: 'meeting', item: nextMeeting }
@@ -32,10 +37,26 @@ export function FieldOfficeView({ fieldLog, onShowToast, onAwardLabel }) {
       : null;
 
   const handleAttend = (meeting, choice) => {
+    const re = attendedThisWeek(meeting.id) && !choice;
     const result = fieldLog.attendMeeting(meeting, choice);
-    onShowToast?.(`Checked in to ${meeting.title}. ${choice ? choice.label : ''}`);
+    onShowToast?.(
+      re
+        ? `Re-checked in to ${meeting.title} (repeat-week XP).`
+        : `Checked in to ${meeting.title}. ${choice ? choice.label : ''}`
+    );
     onAwardLabel?.(result);
     setActiveMeetingId(meeting.id);
+  };
+
+  const handleStartNewWeek = () => {
+    const result = fieldLog.startNewWeek(MEETINGS.map((m) => m.id));
+    if (result?.started) {
+      onShowToast?.(`Week ${week} closed. ${result.bonus ? `+${result.bonus} XP week bonus · ` : ''}Week ${result.week} begins.`);
+      onAwardLabel?.(result);
+      setActiveMeetingId(null);
+    } else {
+      onShowToast?.('Attend every meeting this week to close it out.');
+    }
   };
 
   const handleCompleteQuest = (quest) => {
@@ -44,7 +65,10 @@ export function FieldOfficeView({ fieldLog, onShowToast, onAwardLabel }) {
     onAwardLabel?.(result);
   };
 
-  const announcedTotal = MEETINGS.filter((m) => attendance[m.id]).length;
+  const allDone = MEETINGS.every((m) => attendedThisWeek(m.id));
+  const announcedTotal = MEETINGS.filter((m) => attendedThisWeek(m.id)).length;
+  // Re-week check-ins pay 40% of the meeting XP (min 5).
+  const attendXpLabel = week === 1 ? 25 : 10;
 
   return (
     <div className="content-wrap field-office-wrap">
@@ -53,28 +77,54 @@ export function FieldOfficeView({ fieldLog, onShowToast, onAwardLabel }) {
         <div>
           <span className="mono-stamp" style={{ color: 'var(--brass-300)' }}>FIELD OFFICE</span>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2.1rem', color: 'var(--ink-950)', margin: '0.35rem 0 0.5rem' }}>
-            The working week
+            The working week {week > 1 && <span className="mono-stamp" style={{ fontSize: '0.9rem', color: 'var(--brass-400)' }}>· WEEK {week}</span>}
           </h1>
           <p style={{ fontSize: '0.95rem', color: 'var(--ink-700)', maxWidth: '52ch', lineHeight: '1.6' }}>
             Curiosity here is a job, not a hobby. Show up to the cohort schedule, make
             the call, and let your field log record it — attendance, choices, and
-            filed notes all become part of the portfolio.
+            filed notes all become part of the portfolio. Close the week to roll into
+            the next; re-check-ins still count, just lighter.
           </p>
         </div>
         <div className="field-office-summary">
           <div>
             <div className="field-office-summary-num">{announcedTotal}/{MEETINGS.length}</div>
-            <div className="field-office-summary-label">meetings attended</div>
+            <div className="field-office-summary-label">this week attended</div>
           </div>
           <div>
-            <div className="field-office-summary-num">{(fieldLog.fieldNotes || []).length}/{QUESTS.length}</div>
-            <div className="field-office-summary-label">field notes filed</div>
+            <div className="field-office-summary-num">{(fieldLog.attendanceTotal || 0)}</div>
+            <div className="field-office-summary-label">lifetime check-ins</div>
+          </div>
+          <div>
+            <div className="field-office-summary-num">{(fieldLog.completedWeeks || []).length}</div>
+            <div className="field-office-summary-label">weeks closed</div>
           </div>
           <div>
             <div className="field-office-summary-num">{fieldLog.streak}</div>
             <div className="field-office-summary-label">day streak</div>
           </div>
         </div>
+      </div>
+
+      {/* Week rollover */}
+      <div className="week-rollover">
+        <div>
+          <strong>{allDone ? `Week ${week} complete` : `Week ${week} in progress`}</strong>
+          <span>
+            {allDone
+              ? 'Close it out for a 50 XP week bonus, then roll into the next week — re-check-ins pay lighter but keep the habit ledger honest.'
+              : 'Attend every meeting on the schedule to close the week and earn the week bonus.'}
+          </span>
+        </div>
+        <button
+          className={`btn btn-sm ${allDone ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={handleStartNewWeek}
+          disabled={!allDone}
+          style={{ opacity: allDone ? 1 : 0.55 }}
+        >
+          <CalendarDays size={14} />
+          <span>{allDone ? `Close week ${week} → start week ${week + 1}` : 'Close week'}</span>
+        </button>
       </div>
 
       {/* Today's focus */}
@@ -117,7 +167,7 @@ export function FieldOfficeView({ fieldLog, onShowToast, onAwardLabel }) {
         <div className="meeting-week-strip">
           {MEETINGS.map((meeting) => {
             const Icon = MEETING_ICONS[meeting.icon] || Clock;
-            const attended = !!attendance[meeting.id];
+            const attended = attendedThisWeek(meeting.id);
             const choiceId = attendance[meeting.id]?.choiceId;
             const choice = meeting.choices.find((c) => c.id === choiceId);
             const isActive = activeMeeting.id === meeting.id;
@@ -143,9 +193,15 @@ export function FieldOfficeView({ fieldLog, onShowToast, onAwardLabel }) {
                     <MessageSquareQuote size={13} />
                     {choice.label}
                   </span>
+                ) : attended ? (
+                  <span className="meeting-card-cta">
+                    Checked in · tap to pick a follow-up
+                  </span>
                 ) : (
                   <span className="meeting-card-cta">
-                    {isActive ? 'Open for check-in ↓' : 'Tap to check in (+25 XP)'}
+                    {isActive
+                      ? 'Open for check-in ↓'
+                      : `Tap to check in (+${attendXpLabel} XP${week > 1 ? ' · repeat week' : ''})`}
                   </span>
                 )}
               </button>
@@ -199,7 +255,7 @@ export function FieldOfficeView({ fieldLog, onShowToast, onAwardLabel }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
                   <span>{choice.label}</span>
                   <span className="mono-stamp" style={{ color: 'var(--brass-600)', fontSize: '0.65rem' }}>
-                    +{choice.xp} XP
+                    +{week === 1 ? choice.xp : 5} XP
                   </span>
                 </div>
                 {chosen && <p className="meeting-choice-note">{choice.note}</p>}

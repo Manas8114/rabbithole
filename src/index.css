@@ -3497,3 +3497,36 @@ h1, h2, h3, h4, h5, h6 {
 .invite-advance-btn {
   width: 100%;
 }
+
+/* ==========================================================================
+   Field Office — weekly rollover bar
+   ========================================================================== */
+.week-rollover {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  background-color: var(--cream-card);
+  border: 1px solid rgba(var(--border-ink), 0.12);
+  border-left: 4px solid var(--brass-500);
+  border-radius: 14px;
+  padding: 1.1rem 1.4rem;
+  margin-bottom: 2.5rem;
+  box-shadow: var(--shadow-subtle);
+}
+
+.week-rollover strong {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--ink-950);
+}
+
+.week-rollover span {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--ink-600);
+  max-width: 52ch;
+  line-height: 1.5;
+}

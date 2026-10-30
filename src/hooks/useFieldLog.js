@@ -29,6 +29,9 @@ function emptyLog() {
     inquiries: [],    // player-written next questions: [{ text, ts }]
     exploredTrails: {}, // { [trailId]: { stagesRead, complete, firstTs, lastTs } }
     inviteStatus: {}, // { [studentId]: { stage, sentTs } } — recruiter pipeline
+    week: 1,            // which working week the Field Office is showing
+    completedWeeks: [],
+    attendanceTotal: 0, // lifetime meeting check-ins (stamps count this)
   };
 }
 
@@ -170,6 +173,9 @@ export function useFieldLog() {
     reviews: logRef.current.reviews,
     inquiries: logRef.current.inquiries,
     inviteStatus: logRef.current.inviteStatus,
+    week: logRef.current.week,
+    completedWeeks: logRef.current.completedWeeks,
+    attendanceTotal: logRef.current.attendanceTotal,
   });
 
   /**
@@ -198,20 +204,53 @@ export function useFieldLog() {
   };
 
   /**
-   * Field Office: attend a meeting (once per meeting per log) and pick one
-   * follow-up choice (once, paid separately).
+   * Field Office: attend a meeting and pick one follow-up choice.
+   *
+   * Week 1 pays the full amount (one-shot per meeting). When a week is
+   * rolled with startNewWeek(), re-attending pays 40% of the meeting's XP
+   * and re-picking a choice pays 5 XP — so the weekly habit keeps feeding
+   * the log without the first week's numbers being replayed.
    */
   const attendMeeting = (meeting, choice) => {
-    const atResult = awardOnce(`attend:${meeting.id}`, meeting.xp, (l) => ({
-      attendance: { ...l.attendance, [meeting.id]: { ts: Date.now(), choiceId: choice?.id || null } },
+    const week = logRef.current.week || 1;
+    const atXp = week === 1 ? meeting.xp : Math.max(5, Math.round(meeting.xp * 0.4));
+    const atResult = awardOnce(`attend:${meeting.id}:w${week}`, atXp, (l) => ({
+      attendance: { ...l.attendance, [meeting.id]: { ts: Date.now(), week, choiceId: choice?.id || null } },
+      // Lifetime counter only ticks when this check-in actually pays XP.
+      attendanceTotal: l.attendanceTotal + 1,
     }));
-    const choiceResult = choice ? awardOnce(`choice:${meeting.id}:${choice.id}`, choice.xp, () => ({})) : { earned: 0, newStamps: [] };
+    let choiceResult = { earned: 0, newStamps: [] };
+    if (choice) {
+      const choiceXp = week === 1 ? choice.xp : 5;
+      choiceResult = week === 1
+        ? awardOnce(`choice:${meeting.id}:${choice.id}`, choiceXp, () => ({}))
+        : awardOnce(`choice:${meeting.id}:${choice.id}:w${week}`, choiceXp, () => ({}));
+    }
     return {
       earned: atResult.earned + choiceResult.earned,
       xp: logRef.current.xp,
       rankUp: choiceResult.rankUp || atResult.rankUp,
       newStamps: [...atResult.newStamps, ...choiceResult.newStamps],
     };
+  };
+
+  /**
+   * Field Office: close out the week and start the next one. Requires every
+   * meeting to be attended this week (the caller passes meetingIds). Pays a
+   * one-shot 50 XP week bonus and unlocks the "Reliable" stamp track.
+   */
+  const startNewWeek = (meetingIds) => {
+    const week = logRef.current.week || 1;
+    const allAttended = meetingIds.every((id) => (logRef.current.attendance || {})[id]?.week === week);
+    if (!allAttended) return { started: false, week, xp: logRef.current.xp, newStamps: [] };
+    mutate((l) => ({
+      ...l,
+      week: l.week + 1,
+      attendance: {},
+      completedWeeks: [...(l.completedWeeks || []), week],
+    }));
+    const bonusResult = awardOnce(`week-complete:${week}`, 50, () => ({}));
+    return { started: true, week: logRef.current.week, xp: logRef.current.xp, bonus: bonusResult.earned, newStamps: bonusResult.newStamps };
   };
 
   /**
@@ -369,6 +408,9 @@ export function useFieldLog() {
     inquiries: log.inquiries || [],
     exploredTrails: log.exploredTrails || {},
     inviteStatus: log.inviteStatus || {},
+    week: log.week || 1,
+    completedWeeks: log.completedWeeks || [],
+    attendanceTotal: log.attendanceTotal || 0,
     rank: rankForXp(xp),
     nextRank: nextRankForXp(xp),
     progressPct: rankProgressPct(xp),
@@ -378,6 +420,7 @@ export function useFieldLog() {
     toggleShortlist,
     registerInvite,
     attendMeeting,
+    startNewWeek,
     completeQuest,
     logReview,
     writeInquiry,

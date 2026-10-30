@@ -165,7 +165,7 @@ export function App() {
         ([, st]) => st.stage !== 'Offer'
       );
       if (!moving) return;
-      const [studentId, st] = moving;
+      const [studentId] = moving;
       const result = fieldLog.advanceInvite(studentId);
       if (result?.moved) {
         const name = students.find((s) => s.id === studentId)?.name || 'A candidate';
