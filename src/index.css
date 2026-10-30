@@ -3619,3 +3619,245 @@ h1, h2, h3, h4, h5, h6 {
 .tour-skip-btn {
   font-size: 0.8125rem;
 }
+
+/* ==========================================================================
+   Curiosity Report — printable one-page portfolio
+   ========================================================================== */
+.report-overlay {
+  z-index: 4500;
+  overflow-y: auto;
+}
+
+.report-dialog {
+  max-width: 760px;
+  margin: 1rem auto;
+}
+
+.report-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, var(--forest-900) 0%, var(--forest-800) 100%);
+  color: var(--cream-50);
+  border-bottom: 1px solid rgba(var(--border-ink), 0.1);
+}
+
+[data-theme="dark"] .report-toolbar {
+  background: linear-gradient(135deg, #0F2118 0%, #173225 100%);
+}
+
+.report-doc {
+  background-color: #FFFFFF;
+  color: var(--ink-900);
+  padding: 2rem 2.25rem;
+}
+
+.report-doc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 3px solid var(--brass-500);
+}
+
+.report-doc-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.report-seal {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--forest-800) 0%, var(--forest-950) 100%);
+  border: 1.5px solid var(--brass-400);
+  color: var(--cream-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.report-doc-title {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--forest-950);
+}
+
+.report-doc-sub {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-500);
+  letter-spacing: 0.05em;
+}
+
+.report-doc-meta {
+  display: flex;
+  gap: 1.5rem;
+  text-align: right;
+}
+
+.report-doc-meta div {
+  display: flex;
+  flex-direction: column;
+}
+
+.report-doc-meta span {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-500);
+}
+
+.report-doc-meta strong {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--forest-950);
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem 2rem;
+}
+
+.report-section h4 {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--brass-600);
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--ink-100);
+  padding-bottom: 0.25rem;
+}
+
+.report-section ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.report-section li {
+  font-size: 0.8125rem;
+  color: var(--ink-700);
+}
+
+.report-empty {
+  font-size: 0.8125rem;
+  color: var(--ink-400);
+  font-style: italic;
+}
+
+.report-trail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.report-trail-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--ink-800);
+}
+
+.report-trail-head strong {
+  color: var(--forest-700);
+}
+
+.report-progress {
+  height: 4px;
+  border-radius: 9999px;
+  background-color: var(--cream-200);
+  overflow: hidden;
+}
+
+.report-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--brass-400), var(--forest-500));
+}
+
+.report-stamps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.report-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--forest-800);
+  background-color: var(--brass-50);
+  border: 1px solid var(--brass-300);
+  border-radius: var(--radius-pill);
+  padding: 0.2rem 0.55rem;
+}
+
+.report-doc-foot {
+  margin-top: 1.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ink-100);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--ink-400);
+}
+
+/* Make the whole page printable: hide everything but the report */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .report-doc,
+  .report-doc * {
+    visibility: visible;
+  }
+
+  .report-doc {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0.5in;
+  }
+
+  .report-overlay {
+    position: static;
+    overflow: visible;
+    background: #FFFFFF;
+  }
+
+  .report-dialog {
+    max-width: 100%;
+    box-shadow: none;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .report-overlay .modal-close-btn,
+  .report-overlay .report-toolbar {
+    display: none;
+  }
+}
+
+/* Stamp collection footer: carry-able controls */
+.stamp-footer-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}

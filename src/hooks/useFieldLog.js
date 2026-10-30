@@ -164,6 +164,52 @@ export function useFieldLog() {
     mutate(() => fresh);
   };
 
+  /**
+   * Export the field log as a JSON blob and trigger a browser download.
+   * The file is versioned so future imports can migrate.
+   */
+  const exportFieldLog = () => {
+    const payload = {
+      format: 'curiosity-passport-fieldlog',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      log: logRef.current,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `curiosity-field-log-${todayStr()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    return payload;
+  };
+
+  /**
+   * Import a previously-exported field log (file object or raw JSON string).
+   * Validates the shape and replaces the current log. Returns
+   * { ok, error?, xp? } so the caller can toast the outcome.
+   */
+  const importFieldLog = async (fileOrText) => {
+    try {
+      const text = typeof fileOrText === 'string' ? fileOrText : await fileOrText.text();
+      const parsed = JSON.parse(text);
+      const raw = parsed.log && parsed.format === 'curiosity-passport-fieldlog' ? parsed.log : parsed;
+      if (typeof raw.xp !== 'number' || typeof raw.claimedOnce !== 'object') {
+        return { ok: false, error: 'Not a valid field log export.' };
+      }
+      const next = { ...emptyLog(), ...raw };
+      next.lastVisitDay = todayStr();
+      mutate(() => next);
+      const newStamps = settleStamps();
+      return { ok: true, xp: next.xp, newStamps };
+    } catch {
+      return { ok: false, error: 'Could not read that file — expected a field log export (.json).' };
+    }
+  };
+
   // Derived snapshot the stamp predicates run against.
   const checkState = () => ({
     xp: logRef.current.xp,
@@ -464,5 +510,7 @@ export function useFieldLog() {
     markPassportVisit,
     settleStamps,
     resetLog,
+    exportFieldLog,
+    importFieldLog,
   };
 }

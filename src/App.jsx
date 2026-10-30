@@ -10,6 +10,7 @@ import { InviteModal } from './components/InviteModal';
 import { StampCollectionModal } from './components/StampCollectionModal';
 import { RankUpModal } from './components/RankUpModal';
 import { TourBriefingCard } from './components/TourBriefingCard';
+import { CuriosityReportModal } from './components/CuriosityReportModal';
 import { Toast } from './components/Toast';
 import { students } from './data/studentsData';
 import { useFieldLog } from './hooks/useFieldLog';
@@ -53,6 +54,7 @@ export function App() {
 
   const [inviteModalStudent, setInviteModalStudent] = useState(null);
   const [stampModalOpen, setStampModalOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [activeRankUp, setActiveRankUp] = useState(null);
 
   // Toast System
@@ -238,6 +240,22 @@ export function App() {
 
   const handleSkipTour = () => fieldLog.skipTour();
 
+  // Carry-able: download the field log, restore a previous export, or open
+  // the printable one-page report.
+  const handleExportLog = () => {
+    fieldLog.exportFieldLog();
+    addToast('Field log downloaded as JSON.');
+  };
+
+  const handleImportLog = async (file) => {
+    const result = await fieldLog.importFieldLog(file);
+    if (result.ok) {
+      addToast(`Field log restored · ${result.xp} XP.`, 'xp');
+    } else {
+      addToast(result.error || 'Import failed.', 'default');
+    }
+  };
+
   return (
     <div className="app-container">
       {/* Universal Sticky Header */}
@@ -342,7 +360,7 @@ export function App() {
         onSendInvite={handleSendInvite}
       />
 
-      {/* Field Office: Stamp Collection (with a reset control for the demo) */}
+      {/* Field Office: Stamp Collection (carry-able controls + reset) */}
       <StampCollectionModal
         isOpen={stampModalOpen}
         onClose={() => setStampModalOpen(false)}
@@ -353,6 +371,16 @@ export function App() {
             fieldLog.resetLog();
           }
         }}
+        onExport={handleExportLog}
+        onImportFile={handleImportLog}
+        onOpenReport={() => setReportOpen(true)}
+      />
+
+      {/* The printable one-page portfolio */}
+      <CuriosityReportModal
+        isOpen={reportOpen}
+        onClose={() => setReportOpen(false)}
+        fieldLog={fieldLog}
       />
 
       {/* Rank promotion ceremony */}

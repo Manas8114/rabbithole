@@ -1,17 +1,28 @@
-import React from 'react';
-import { X, Lock, RotateCcw } from 'lucide-react';
+import React, { useRef } from 'react';
+import { X, Lock, RotateCcw, Download, Upload, FileText } from 'lucide-react';
 import { STAMP_CATALOG, STAMP_ICONS } from '../data/gamificationData';
 
 /**
  * The stamp collection — every achievement in the catalog, rendered as
  * passport seals. Earned stamps ink in brass/forest; unearned ones render
- * ghosted with their unlock condition.
+ * ghosted with their unlock condition. The footer carries the carry-able
+ * controls: export / import the field log, print the Curiosity Report, reset.
  */
-export function StampCollectionModal({ isOpen, onClose, earnedStamps, xp, onResetLog }) {
+export function StampCollectionModal({
+  isOpen,
+  onClose,
+  earnedStamps,
+  xp,
+  onResetLog,
+  onExport,
+  onImportFile,
+  onOpenReport,
+}) {
   if (!isOpen) return null;
 
   const earnedSet = new Set(earnedStamps || []);
   const earnedCount = earnedSet.size;
+  const fileInput = useRef(null);
 
   return (
     <div className="modal-overlay stamp-modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
@@ -60,17 +71,44 @@ export function StampCollectionModal({ isOpen, onClose, earnedStamps, xp, onRese
           })}
         </div>
 
-        {onResetLog && (
-          <div className="stamp-collection-footer">
-            <span style={{ fontSize: '0.75rem', color: 'var(--ink-500)' }}>
-              Demo controls — the field log lives in this browser only.
+        <div className="stamp-collection-footer">
+          <div className="stamp-footer-controls">
+            <span className="mono-stamp" style={{ color: 'var(--brass-600)', fontSize: '0.625rem' }}>
+              MAKE IT CARRY-ABLE
             </span>
-            <button onClick={onResetLog} className="btn btn-secondary btn-sm">
-              <RotateCcw size={14} />
-              <span>Reset Field Log</span>
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button className="btn btn-secondary btn-sm" onClick={onExport} title="Download your field log as JSON">
+                <Download size={14} />
+                <span>Export Field Log</span>
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={() => fileInput.current?.click()} title="Import a previously-exported field log">
+                <Upload size={14} />
+                <span>Import</span>
+              </button>
+              <input
+                ref={fileInput}
+                type="file"
+                accept="application/json,.json"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) onImportFile?.(file);
+                  e.target.value = '';
+                }}
+              />
+              <button className="btn btn-primary btn-sm" onClick={onOpenReport} title="Open the printable one-page Curiosity Report">
+                <FileText size={14} />
+                <span>Curiosity Report</span>
+              </button>
+            </div>
           </div>
-        )}
+          {onResetLog && (
+            <button onClick={onResetLog} className="btn btn-sm" style={{ background: 'none', border: 'none', color: 'var(--ink-500)', fontSize: '0.75rem', cursor: 'pointer' }}>
+              <RotateCcw size={13} style={{ display: 'inline', verticalAlign: '-2px' }} />
+              <span> Reset field log</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
