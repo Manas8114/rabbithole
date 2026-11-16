@@ -14,6 +14,7 @@ import { CuriosityReportModal } from './components/CuriosityReportModal';
 import { TrailCreatorModal } from './components/TrailCreatorModal';
 import { ProfileEditorModal } from './components/ProfileEditorModal';
 import { OutreachHistoryModal } from './components/OutreachHistoryModal';
+import { AuthModal } from './components/AuthModal';
 import { Toast } from './components/Toast';
 import { students } from './data/studentsData';
 import { useFieldLog } from './hooks/useFieldLog';
@@ -95,6 +96,7 @@ export function App() {
   const [trailCreatorOpen, setTrailCreatorOpen] = useState(false);
   const [profileEditorOpen, setProfileEditorOpen] = useState(false);
   const [outreachHistoryOpen, setOutreachHistoryOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Toast System
   const [toasts, setToasts] = useState([]);
@@ -497,6 +499,12 @@ export function App() {
         outreachMessages={fieldLog.outreachMessages}
         inviteStatus={fieldLog.inviteStatus}
         onAdvanceInvite={handleAdvanceInvite}
+      />
+
+      {/* Commercial Auth Gateway */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
       />
 
       {/* Rank promotion ceremony */}
