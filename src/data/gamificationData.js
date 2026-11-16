@@ -25,6 +25,9 @@ import {
   CheckCircle2,
   MessageSquare,
   Trophy,
+  PenSquare,
+  UserCheck,
+  MessageSquareQuote,
 } from 'lucide-react';
 
 // The career track your field log climbs through. Thresholds are cumulative XP.
@@ -40,11 +43,14 @@ export const RANKS = [
 // Action → XP table. One-shot actions are keyed by a stable id so they pay
 // exactly once per key (revisits never re-earn).
 export const XP_ACTIONS = {
-  openTrail:     { xp: 15, toast: 'Trail filed in your field log' },
-  readStage:     { xp: 10, toast: 'Stage documented in your field log' },
-  completeTrail: { xp: 40, toast: 'Full inquiry trace completed' },
-  shortlist:     { xp: 5,  toast: 'Candidate filed to your shortlist' },
-  invite:        { xp: 10, toast: 'Outreach logged in your field log' },
+  openTrail:      { xp: 15,  toast: 'Trail filed in your field log' },
+  readStage:      { xp: 10,  toast: 'Stage documented in your field log' },
+  completeTrail:  { xp: 40,  toast: 'Full inquiry trace completed' },
+  shortlist:      { xp: 5,   toast: 'Candidate filed to your shortlist' },
+  invite:         { xp: 10,  toast: 'Outreach logged in your field log' },
+  publishTrail:   { xp: 100, toast: 'Original curiosity trail published to your passport' },
+  updateProfile:  { xp: 25,  toast: 'Explorer profile customized' },
+  detailedReview: { xp: 40,  toast: 'In-depth peer review filed to cohort ledger' },
 };
 
 // Current rank for a given XP total (highest threshold reached).
@@ -233,6 +239,33 @@ export const STAMP_CATALOG = [
     desc: 'Finish the 90-second guided tour of the whole platform.',
     check: (s) => !!s.tourDone,
   },
+  {
+    id: 'trail-author',
+    name: 'Published Author',
+    stampCode: 'SEAL-017',
+    icon: 'PenSquare',
+    bonusXp: 75,
+    desc: 'Author and publish your own original curiosity trail.',
+    check: (s) => (s.createdTrails?.length || 0) >= 1,
+  },
+  {
+    id: 'profile-identity',
+    name: 'Field Identity',
+    stampCode: 'SEAL-018',
+    icon: 'UserCheck',
+    bonusXp: 30,
+    desc: 'Complete your explorer profile with custom bio and aspirations.',
+    check: (s) => !!s.profileCustomized,
+  },
+  {
+    id: 'peer-dialogue',
+    name: 'Peer Critic',
+    stampCode: 'SEAL-019',
+    icon: 'MessageSquareQuote',
+    bonusXp: 40,
+    desc: 'Leave an in-depth peer review with written commentary.',
+    check: (s) => (s.reviews || []).some((r) => r.note && r.note.trim().length > 0),
+  },
 ];
 
 export const STAMP_ICONS = {
@@ -251,6 +284,9 @@ export const STAMP_ICONS = {
   CheckCircle2,
   MessageSquare,
   Trophy,
+  PenSquare,
+  UserCheck,
+  MessageSquareQuote,
 };
 
 // ===========================================================================

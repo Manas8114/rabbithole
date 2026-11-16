@@ -12,11 +12,14 @@ import {
   FileText,
   Clock,
   UserCheck,
-  PenLine
+  PenLine,
+  Share2,
+  Plus,
+  Edit3
 } from 'lucide-react';
-import { students } from '../data/studentsData';
+import { getMergedStudents, getStudentById } from '../data/studentsData';
 import { STAMP_CATALOG } from '../data/gamificationData';
-import { trailsData } from '../data/curiosityTrailData';
+import { getAllTrails } from '../data/curiosityTrailData';
 
 export function PassportView({
   studentId = 'alex-morgan',
@@ -26,10 +29,14 @@ export function PassportView({
   isShortlisted,
   onOpenInviteModal,
   fieldLog,
-  onWriteInquiry
+  onWriteInquiry,
+  onOpenTrailCreator,
+  onOpenProfileEditor,
+  onShowToast
 }) {
-  // Find current student or default to Alex Morgan
-  const activeStudent = students.find(s => s.id === studentId) || students[0];
+  const mergedCohort = getMergedStudents(fieldLog);
+  const activeStudent = getStudentById(studentId, fieldLog);
+  const allTrails = getAllTrails(fieldLog?.createdTrails || []);
   const [draftInquiry, setDraftInquiry] = useState('');
 
   // The "you" passport is live: its numbers come from the field log, never
@@ -39,14 +46,14 @@ export function PassportView({
   const yourTrails = isYou
     ? Object.entries(fieldLog.exploredTrails || {}).map(([id, rec]) => ({
         id,
-        total: trailsData[id]?.nodes?.length || rec.stagesRead,
+        total: allTrails[id]?.nodes?.length || rec.stagesRead,
         ...rec,
       }))
     : [];
   const liveStats = isYou
     ? {
-        trailsActive: yourTrails.length,
-        projectsBuilt: 0,
+        trailsActive: (activeStudent.trails?.length || 0) + yourTrails.length,
+        projectsBuilt: activeStudent.projects?.length || 0,
         fieldNotes: fieldLog.fieldNotes.length,
         milestoneStamps: fieldLog.earnedStamps.length,
       }
@@ -78,9 +85,9 @@ export function PassportView({
           flexWrap: 'wrap',
           gap: '1rem'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
             <span className="mono-stamp" style={{ color: 'var(--ink-500)' }}>Demo Cohort:</span>
-            {students.map((student) => (
+            {mergedCohort.map((student) => (
               <button
                 key={student.id}
                 onClick={() => onSelectStudent(student.id)}
@@ -95,12 +102,27 @@ export function PassportView({
                   transition: 'all 150ms ease'
                 }}
               >
-                {student.name} {student.id === 'alex-morgan' ? '(Primary)' : ''}
+                {student.name} {student.id === 'you' ? '(Your Live Profile)' : ''}
               </button>
             ))}
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => {
+                try {
+                  const url = `${window.location.origin}${window.location.pathname}#/passport/${activeStudent.id}`;
+                  navigator.clipboard?.writeText(url);
+                } catch {}
+                onShowToast?.(`Shareable link to ${activeStudent.name}'s Passport copied to clipboard!`);
+              }}
+              className="btn btn-secondary btn-sm"
+              title="Share passport"
+            >
+              <Share2 size={14} />
+              <span>Share Passport</span>
+            </button>
+
             <button
               onClick={() => onToggleShortlist(activeStudent.id)}
               className={`btn btn-sm ${isShortlisted ? 'btn-sage' : 'btn-secondary'}`}
@@ -182,6 +204,17 @@ export function PassportView({
                   <UserCheck size={13} />
                   <span>{activeStudent.statusText}</span>
                 </div>
+
+                {isYou && onOpenProfileEditor && (
+                  <button
+                    onClick={onOpenProfileEditor}
+                    className="btn btn-secondary btn-sm"
+                    style={{ marginTop: '0.85rem', width: '100%', fontSize: '0.75rem' }}
+                  >
+                    <Edit3 size={13} />
+                    <span>Edit Explorer Profile (+25 XP)</span>
+                  </button>
+                )}
               </div>
 
               {/* Personal Introduction */}
@@ -263,48 +296,32 @@ export function PassportView({
                   </span>
                 </div>
 
-                <div className="trails-stack">
-                  {isYou && yourTrails.length > 0 && (
-                    yourTrails.map((rec) => {
-                      const t = trailsData[rec.id];
-                      const pct = Math.min(100, Math.round((rec.stagesRead / rec.total) * 100));
-                      const reviewed = (fieldLog.reviews || []).find((r) => r.trailId === rec.id);
-                      return (
-                        <div key={rec.id} className="trail-card-preview you-trail-card" onClick={() => onNavigateToTrail(rec.id)}>
-                          <div className="trail-header-meta">
-                            <span className="tag-pill">Exploring · {t?.studentName || 'Field'}</span>
-                            <span className="trail-status-pill">{rec.complete ? 'Trace Complete' : 'In Progress'}</span>
-                          </div>
-                          <h4 className="trail-question-title">
-                            "{t?.title || rec.id}"
-                          </h4>
-                          <p className="trail-summary-snippet">
-                            {rec.stagesRead} of {rec.total} stages documented
-                            {rec.complete ? ' · full trace complete' : ' · keep going to complete the trace'}
-                            {reviewed ? ' · peer review filed' : ''}
-                          </p>
-                          <div className="you-trail-progress" aria-hidden="true">
-                            <div className="you-trail-progress-fill" style={{ width: `${pct}%` }} />
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                  {isYou && yourTrails.length === 0 && (
-                    <div className="trail-card-preview you-empty-card">
-                      <h4 className="trail-question-title" style={{ fontSize: '1.05rem' }}>
-                        No trails filed yet — your first open inquiry becomes trail one.
-                      </h4>
-                      <p className="trail-summary-snippet">
-                        Open any explorer's trail from the Curiosity Trail view and it files to your ledger;
-                        write your own question below and it becomes the one you chase.
-                      </p>
-                      <button className="btn btn-secondary btn-sm" style={{ marginTop: '0.75rem' }} onClick={() => onNavigateToTrail('sustainable-fashion')}>
-                        <Compass size={14} />
-                        <span>Inspect a Trail</span>
-                      </button>
+                {isYou && onOpenTrailCreator && (
+                  <div style={{
+                    marginBottom: '1.25rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    backgroundColor: 'var(--sage-50)',
+                    padding: '0.85rem 1.25rem',
+                    borderRadius: '8px',
+                    border: '1px dashed var(--sage-300)',
+                    flexWrap: 'wrap',
+                    gap: '0.75rem',
+                  }}>
+                    <div>
+                      <strong style={{ fontSize: '0.9rem', color: 'var(--forest-900)', display: 'block' }}>Have an original question?</strong>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--forest-700)' }}>Document research milestones, hypotheses, and proof artifacts.</span>
                     </div>
-                  )}
+                    <button onClick={onOpenTrailCreator} className="btn btn-primary btn-sm">
+                      <Plus size={14} />
+                      <span>Author a New Trail (+100 XP)</span>
+                    </button>
+                  </div>
+                )}
+
+                <div className="trails-stack">
+                  {/* Authored Trails (Active student's own trails) */}
                   {activeStudent.trails.map((trail) => (
                     <div
                       key={trail.id}
@@ -314,7 +331,7 @@ export function PassportView({
                     >
                       {trail.isFeatured && (
                         <div className="trail-featured-badge">
-                          ★ Featured Interactive Trail
+                          ★ {isYou ? 'Your Authored Trail' : 'Featured Interactive Trail'}
                         </div>
                       )}
 
@@ -372,6 +389,69 @@ export function PassportView({
                       </div>
                     </div>
                   ))}
+
+                  {/* For "You", if no authored trails and no explored trails yet */}
+                  {isYou && activeStudent.trails.length === 0 && yourTrails.length === 0 && (
+                    <div className="trail-card-preview you-empty-card">
+                      <h4 className="trail-question-title" style={{ fontSize: '1.05rem' }}>
+                        No trails filed yet — author your first inquiry or explore cohort trails.
+                      </h4>
+                      <p className="trail-summary-snippet">
+                        Author your own question using the button above (+100 XP), or open any classmate's trail to file it into your inspection ledger.
+                      </p>
+                      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+                        <button className="btn btn-primary btn-sm" onClick={onOpenTrailCreator}>
+                          <Plus size={14} />
+                          <span>Author a Trail</span>
+                        </button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => onNavigateToTrail('sustainable-fashion')}>
+                          <Compass size={14} />
+                          <span>Inspect Cohort Trail</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* For "You", the Explored Cohort Trails Ledger */}
+                  {isYou && yourTrails.length > 0 && (
+                    <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid rgba(var(--border-ink), 0.1)' }}>
+                      <div className="passport-section-heading" style={{ marginBottom: '0.85rem' }}>
+                        <div>
+                          <h4 style={{ fontSize: '1.05rem', color: 'var(--ink-900)' }}>Explored Cohort Inquiries</h4>
+                          <span className="subtitle">Classmate trails you have inspected and reviewed</span>
+                        </div>
+                        <span className="mono-stamp" style={{ color: 'var(--ink-500)', fontSize: '0.75rem' }}>
+                          {yourTrails.length} TRACED
+                        </span>
+                      </div>
+                      <div className="trails-stack">
+                        {yourTrails.map((rec) => {
+                          const t = allTrails[rec.id];
+                          const pct = Math.min(100, Math.round((rec.stagesRead / rec.total) * 100));
+                          const reviewed = (fieldLog.reviews || []).find((r) => r.trailId === rec.id);
+                          return (
+                            <div key={rec.id} className="trail-card-preview you-trail-card" onClick={() => onNavigateToTrail(rec.id)}>
+                              <div className="trail-header-meta">
+                                <span className="tag-pill">Exploring · {t?.studentName || 'Field'}</span>
+                                <span className="trail-status-pill">{rec.complete ? 'Trace Complete' : 'In Progress'}</span>
+                              </div>
+                              <h4 className="trail-question-title">
+                                "{t?.title || rec.id}"
+                              </h4>
+                              <p className="trail-summary-snippet">
+                                {rec.stagesRead} of {rec.total} stages documented
+                                {rec.complete ? ' · full trace complete' : ' · keep going to complete the trace'}
+                                {reviewed ? ' · peer review filed' : ''}
+                              </p>
+                              <div className="you-trail-progress" aria-hidden="true">
+                                <div className="you-trail-progress-fill" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </section>
 
@@ -390,57 +470,60 @@ export function PassportView({
                 </div>
 
                 <div className="projects-grid">
-                  {isYou && (
+                  {isYou && activeStudent.projects.length === 0 && (
                     <div className="project-card you-empty-card">
                       <div className="project-category">Field Office</div>
                       <h4 className="project-title">Your first artifact hasn't shipped yet</h4>
                       <p className="project-problem-text" style={{ marginTop: '0.5rem' }}>
-                        A completed side quest in the Field Office becomes your first field note; a finished
-                        mini-project you build becomes the artifact recruiters will actually open.
+                        Publish an inquiry trail with a tangible artifact, or complete a Field Office quest.
                       </p>
-                      <button className="btn btn-secondary btn-sm" style={{ marginTop: '0.75rem' }} onClick={() => onNavigateToTrail('sustainable-fashion')}>
-                        <Layers size={14} />
-                        <span>See an Example Artifact</span>
+                      <button className="btn btn-secondary btn-sm" style={{ marginTop: '0.75rem' }} onClick={onOpenTrailCreator}>
+                        <Plus size={14} />
+                        <span>Publish an Artifact</span>
                       </button>
                     </div>
                   )}
                   {activeStudent.projects.map((proj) => (
                     <div key={proj.id} className="project-card">
                       <div>
-                        <div className="project-category">{proj.category} • {proj.date}</div>
+                        <div className="project-category">{proj.category} • {proj.dateSpan || proj.date || '2025'}</div>
                         <h4 className="project-title">{proj.title}</h4>
                         
                         <div style={{ marginBottom: '1rem' }}>
                           <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-500)', display: 'block', marginBottom: '0.2rem' }}>
-                            Problem Tackled:
+                            Problem Tackled / Scope:
                           </span>
                           <p className="project-problem-text">
-                            {proj.problemStatement}
+                            {proj.problemStatement || proj.summary}
                           </p>
                         </div>
 
-                        <div style={{ marginBottom: '1rem' }}>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-500)', display: 'block', marginBottom: '0.2rem' }}>
-                            Methodology & Sourcing:
-                          </span>
-                          <p style={{ fontSize: '0.8125rem', color: 'var(--ink-700)', lineHeight: '1.45' }}>
-                            {proj.methodology}
-                          </p>
-                        </div>
+                        {proj.methodology && (
+                          <div style={{ marginBottom: '1rem' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink-500)', display: 'block', marginBottom: '0.2rem' }}>
+                              Methodology & Sourcing:
+                            </span>
+                            <p style={{ fontSize: '0.8125rem', color: 'var(--ink-700)', lineHeight: '1.45' }}>
+                              {proj.methodology}
+                            </p>
+                          </div>
+                        )}
 
-                        <div>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--forest-700)', display: 'block', marginBottom: '0.4rem' }}>
-                            Tangible Outcomes & Proof:
-                          </span>
-                          <ul className="project-outcomes-list">
-                            {proj.outcomes.map((outcome, idx) => (
-                              <li key={idx}>
-                                <CheckCircle2 size={14} />
-                                <span>{outcome}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                        {proj.outcomes && proj.outcomes.length > 0 && (
+                          <div>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--forest-700)', display: 'block', marginBottom: '0.4rem' }}>
+                              Tangible Outcomes & Proof:
+                            </span>
+                            <ul className="project-outcomes-list">
+                              {proj.outcomes.map((outcome, idx) => (
+                                <li key={idx}>
+                                  <CheckCircle2 size={14} />
+                                  <span>{outcome}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
 
                       <div style={{ 
@@ -452,25 +535,47 @@ export function PassportView({
                         justifyContent: 'space-between'
                       }}>
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6875rem', color: 'var(--ink-500)' }}>
-                          {proj.timeInvested}
+                          {proj.timeInvested || proj.metrics || 'Verified Artifact'}
                         </span>
-                        <a 
-                          href="#artifact"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            alert(`Demo Artifact Preview: "${proj.title}"\nIn the live platform, this opens the candidate's GitHub repository, interactive model, or published PDF.`);
-                          }}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.3rem',
-                            fontSize: '0.8125rem',
-                            color: 'var(--forest-700)',
-                            fontWeight: 600
-                          }}
-                        >
-                          View Artifact <ExternalLink size={13} />
-                        </a>
+                        {proj.liveUrl ? (
+                          <a 
+                            href={proj.liveUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                              fontSize: '0.8125rem',
+                              fontWeight: 600,
+                              color: 'var(--forest-700)',
+                              textDecoration: 'none'
+                            }}
+                          >
+                            <span>Open Artifact</span>
+                            <ExternalLink size={12} />
+                          </a>
+                        ) : (
+                          <a 
+                            href="#artifact"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              alert(`Demo Artifact Preview: "${proj.title}"\nIn the live platform, this opens the candidate's GitHub repository, interactive model, or published PDF.`);
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                              fontSize: '0.8125rem',
+                              fontWeight: 600,
+                              color: 'var(--forest-700)',
+                              textDecoration: 'none'
+                            }}
+                          >
+                            <span>Inspect Deliverable</span>
+                            <ExternalLink size={12} />
+                          </a>
+                        )}
                       </div>
                     </div>
                   ))}

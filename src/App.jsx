@@ -11,10 +11,31 @@ import { StampCollectionModal } from './components/StampCollectionModal';
 import { RankUpModal } from './components/RankUpModal';
 import { TourBriefingCard } from './components/TourBriefingCard';
 import { CuriosityReportModal } from './components/CuriosityReportModal';
+import { TrailCreatorModal } from './components/TrailCreatorModal';
+import { ProfileEditorModal } from './components/ProfileEditorModal';
+import { OutreachHistoryModal } from './components/OutreachHistoryModal';
 import { Toast } from './components/Toast';
 import { students } from './data/studentsData';
 import { useFieldLog } from './hooks/useFieldLog';
 import { scrollToTop } from './lib/scrollToTop';
+
+function parseHash() {
+  const hash = window.location.hash.replace(/^#\/?/, '');
+  const [route, param] = hash.split('/');
+  if (route === 'passport') {
+    return { view: 'passport', studentId: param || 'alex-morgan' };
+  }
+  if (route === 'trail') {
+    return { view: 'trail', trailId: param || 'sustainable-fashion' };
+  }
+  if (route === 'employer') {
+    return { view: 'employer', shortlistOnly: param === 'shortlist' };
+  }
+  if (route === 'office') {
+    return { view: 'office' };
+  }
+  return { view: 'landing' };
+}
 
 // Initial theme: persisted choice wins, otherwise follow the OS preference.
 // index.html also runs this read before paint to avoid a flash.
@@ -27,10 +48,25 @@ function getInitialTheme() {
 }
 
 export function App() {
-  // Navigation & View State
-  const [currentView, setCurrentView] = useState('landing');
-  const [selectedStudentId, setSelectedStudentId] = useState('alex-morgan');
-  const [selectedTrailId, setSelectedTrailId] = useState('sustainable-fashion');
+  // Navigation & View State driven by URL hash
+  const initialRoute = parseHash();
+  const [currentView, setCurrentView] = useState(initialRoute.view);
+  const [selectedStudentId, setSelectedStudentId] = useState(initialRoute.studentId || 'alex-morgan');
+  const [selectedTrailId, setSelectedTrailId] = useState(initialRoute.trailId || 'sustainable-fashion');
+  const [filterShortlistedOnly, setFilterShortlistedOnly] = useState(!!initialRoute.shortlistOnly);
+
+  // Sync state with browser back/forward buttons
+  useEffect(() => {
+    const onHashChange = () => {
+      const parsed = parseHash();
+      setCurrentView(parsed.view);
+      if (parsed.studentId) setSelectedStudentId(parsed.studentId);
+      if (parsed.trailId) setSelectedTrailId(parsed.trailId);
+      if (typeof parsed.shortlistOnly === 'boolean') setFilterShortlistedOnly(parsed.shortlistOnly);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   // Theme (light/dark) — persisted, applied via the <html data-theme> attr.
   const [theme, setTheme] = useState(getInitialTheme);
@@ -51,12 +87,14 @@ export function App() {
   // Shortlist & Invites now live in the field log, so they persist.
   const shortlist = fieldLog.shortlist;
   const invitedStudents = fieldLog.invited;
-  const [filterShortlistedOnly, setFilterShortlistedOnly] = useState(false);
 
   const [inviteModalStudent, setInviteModalStudent] = useState(null);
   const [stampModalOpen, setStampModalOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [activeRankUp, setActiveRankUp] = useState(null);
+  const [trailCreatorOpen, setTrailCreatorOpen] = useState(false);
+  const [profileEditorOpen, setProfileEditorOpen] = useState(false);
+  const [outreachHistoryOpen, setOutreachHistoryOpen] = useState(false);
 
   // Toast System
   const [toasts, setToasts] = useState([]);
@@ -107,33 +145,44 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStudentId]);
 
-  // Navigation handlers
+  // Navigation handlers synced with URL hash
+  const handleNavigateToLanding = () => {
+    setCurrentView('landing');
+    window.location.hash = '/';
+    scrollToTop();
+  };
+
   const handleNavigateToPassport = (studentId = 'alex-morgan') => {
     setSelectedStudentId(studentId);
     setCurrentView('passport');
+    window.location.hash = `/passport/${studentId}`;
     scrollToTop();
   };
 
   const handleNavigateToTrail = (trailId = 'sustainable-fashion') => {
     setSelectedTrailId(trailId);
     setCurrentView('trail');
+    window.location.hash = `/trail/${trailId}`;
     scrollToTop();
   };
 
   const handleNavigateToEmployer = () => {
     setCurrentView('employer');
     setFilterShortlistedOnly(false);
+    window.location.hash = '/employer';
     scrollToTop();
   };
 
   const handleNavigateToOffice = () => {
     setCurrentView('office');
+    window.location.hash = '/office';
     scrollToTop();
   };
 
   const handleOpenShortlistFromHeader = () => {
     setCurrentView('employer');
     setFilterShortlistedOnly(true);
+    window.location.hash = '/employer/shortlist';
     scrollToTop();
   };
 
@@ -162,10 +211,16 @@ export function App() {
     setInviteModalStudent(null);
   };
 
-  const handleSendInvite = ({ studentId, studentName, companyName, roleType }) => {
-    const result = fieldLog.registerInvite(studentId);
+  const handleSendInvite = ({ studentId, studentName, companyName, roleType, personalNote }) => {
+    const result = fieldLog.sendDetailedOutreach({
+      studentId,
+      studentName,
+      companyName,
+      roleType,
+      personalNote,
+    });
     setInviteModalStudent(null);
-    addToast(`Demo invitation sent to ${studentName} for "${roleType}" on behalf of ${companyName}!`);
+    addToast(`Outreach sent to ${studentName} for "${roleType}" on behalf of ${companyName}!`);
     announceXp(result, 'Outreach');
   };
 
@@ -276,9 +331,11 @@ export function App() {
       <Header
         currentView={currentView}
         setCurrentView={(view) => {
-          setCurrentView(view);
-          if (view === 'employer') setFilterShortlistedOnly(false);
-          scrollToTop();
+          if (view === 'landing') handleNavigateToLanding();
+          else if (view === 'employer') handleNavigateToEmployer();
+          else if (view === 'office') handleNavigateToOffice();
+          else if (view === 'passport') handleNavigateToPassport(selectedStudentId);
+          else if (view === 'trail') handleNavigateToTrail(selectedTrailId);
         }}
         shortlistCount={shortlist.length}
         onOpenShortlist={handleOpenShortlistFromHeader}
@@ -310,35 +367,44 @@ export function App() {
         {currentView === 'passport' && (
           <PassportView
             studentId={selectedStudentId}
-            onSelectStudent={(id) => setSelectedStudentId(id)}
+            onSelectStudent={(id) => handleNavigateToPassport(id)}
             onNavigateToTrail={handleNavigateToTrail}
             onToggleShortlist={handleToggleShortlist}
             isShortlisted={shortlist.includes(selectedStudentId)}
             onOpenInviteModal={handleOpenInviteModal}
-            fieldLog={selectedStudentId === 'you' ? fieldLog : null}
+            fieldLog={fieldLog}
             onWriteInquiry={(text) => {
               const result = fieldLog.writeInquiry(text);
               addToast('Your question has been filed to your passport.');
               announceXp(result, 'Question filed');
             }}
+            onOpenTrailCreator={() => setTrailCreatorOpen(true)}
+            onOpenProfileEditor={() => setProfileEditorOpen(true)}
+            onShowToast={addToast}
           />
         )}
 
         {currentView === 'trail' && (
           <CuriosityTrailView
             trailId={selectedTrailId}
+            customTrails={fieldLog.createdTrails}
             onSelectTrail={handleNavigateToTrail}
             onBackToPassport={(studentId) => handleNavigateToPassport(studentId || selectedStudentId)}
             onOpenInviteModal={handleOpenInviteModal}
             onShowToast={addToast}
             onAwardXp={(actionKey, label) => announceXp(fieldLog.award(actionKey), label)}
-            onLogReview={(trailId, focus) => {
-              const result = fieldLog.logReview(trailId, focus);
-              addToast('Peer review filed to your passport.');
+            onLogReview={(trailId, focus, note) => {
+              const result = fieldLog.logDetailedReview(trailId, focus, note);
+              addToast('Peer review filed to cohort ledger.', 'xp');
               announceXp(result, 'Peer review');
             }}
             onNoteActivity={fieldLog.noteTrailActivity}
-            reviewedFocus={(fieldLog.reviews || []).find((r) => r.trailId === selectedTrailId)?.focus}
+            existingReview={(fieldLog.reviews || []).find((r) => r.trailId === selectedTrailId)}
+            onDeleteTrail={(id) => {
+              fieldLog.deleteCreatedTrail(id);
+              addToast('Authored trail deleted.');
+              handleNavigateToPassport('you');
+            }}
           />
         )}
 
@@ -362,6 +428,8 @@ export function App() {
             onAdvanceInvite={handleAdvanceInvite}
             filterShortlistedOnly={filterShortlistedOnly}
             setFilterShortlistedOnly={setFilterShortlistedOnly}
+            fieldLog={fieldLog}
+            onOpenOutreachCenter={() => setOutreachHistoryOpen(true)}
           />
         )}
       </main>
@@ -398,6 +466,39 @@ export function App() {
         fieldLog={fieldLog}
       />
 
+      {/* Author an Original Curiosity Trail */}
+      <TrailCreatorModal
+        isOpen={trailCreatorOpen}
+        onClose={() => setTrailCreatorOpen(false)}
+        onPublishTrail={(newTrail) => {
+          const result = fieldLog.publishTrail(newTrail);
+          announceXp(result, 'Trail published');
+          addToast(`Published "${newTrail.shortLabel || newTrail.title}" to your passport!`, 'stamp');
+          handleNavigateToTrail(newTrail.id);
+        }}
+      />
+
+      {/* Edit Explorer Profile */}
+      <ProfileEditorModal
+        isOpen={profileEditorOpen}
+        onClose={() => setProfileEditorOpen(false)}
+        currentProfile={fieldLog.profile}
+        onSaveProfile={(prof) => {
+          const result = fieldLog.updateProfile(prof);
+          announceXp(result, 'Profile updated');
+          addToast('Explorer profile saved to passport!', 'xp');
+        }}
+      />
+
+      {/* Recruiter Outreach Communications Center */}
+      <OutreachHistoryModal
+        isOpen={outreachHistoryOpen}
+        onClose={() => setOutreachHistoryOpen(false)}
+        outreachMessages={fieldLog.outreachMessages}
+        inviteStatus={fieldLog.inviteStatus}
+        onAdvanceInvite={handleAdvanceInvite}
+      />
+
       {/* Rank promotion ceremony */}
       <RankUpModal rankUp={activeRankUp} onClose={() => setActiveRankUp(null)} />
 
@@ -405,7 +506,15 @@ export function App() {
       <Toast toasts={toasts} onDismiss={handleDismissToast} />
 
       {/* Universal Editorial Footer */}
-      <Footer setCurrentView={setCurrentView} />
+      <Footer
+        setCurrentView={(view) => {
+          if (view === 'landing') handleNavigateToLanding();
+          else if (view === 'employer') handleNavigateToEmployer();
+          else if (view === 'office') handleNavigateToOffice();
+          else if (view === 'passport') handleNavigateToPassport(selectedStudentId);
+          else if (view === 'trail') handleNavigateToTrail(selectedTrailId);
+        }}
+      />
     </div>
   );
 }

@@ -8,9 +8,10 @@ import {
   CheckCircle2,
   Layers,
   RefreshCw,
-  Building
+  Building,
+  Mail
 } from 'lucide-react';
-import { students } from '../data/studentsData';
+import { getMergedStudents } from '../data/studentsData';
 import { INVITE_STAGES } from '../data/gamificationData';
 
 export function EmployerDiscoveryView({
@@ -23,7 +24,9 @@ export function EmployerDiscoveryView({
   inviteStatus,
   onAdvanceInvite,
   filterShortlistedOnly,
-  setFilterShortlistedOnly
+  setFilterShortlistedOnly,
+  fieldLog,
+  onOpenOutreachCenter
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInterest, setSelectedInterest] = useState('All');
@@ -34,11 +37,14 @@ export function EmployerDiscoveryView({
     'Human-AI & Cognitive Systems',
     'Materials & Hardware',
     'Data & Financial Modeling',
+    'Energy & Microgrids',
   ];
+
+  const candidatePool = useMemo(() => getMergedStudents(fieldLog), [fieldLog]);
 
   // Filtering logic
   const filteredStudents = useMemo(() => {
-    return students.filter((student) => {
+    return candidatePool.filter((student) => {
       // 1. Shortlist filter
       if (filterShortlistedOnly && !shortlist.includes(student.id)) {
         return false;
@@ -58,17 +64,17 @@ export function EmployerDiscoveryView({
         const nameMatch = student.name.toLowerCase().includes(query);
         const disciplineMatch = student.discipline.toLowerCase().includes(query);
         const universityMatch = student.university.toLowerCase().includes(query);
-        const bioMatch = student.intro.toLowerCase().includes(query);
-        const questionsMatch = student.trails.some(t => t.question.toLowerCase().includes(query));
-        const projectMatch = student.projects.some(p => p.title.toLowerCase().includes(query));
-        const skillMatch = student.interests.some(i => i.toLowerCase().includes(query));
+        const bioMatch = (student.intro || '').toLowerCase().includes(query);
+        const questionsMatch = (student.trails || []).some(t => (t.question || '').toLowerCase().includes(query));
+        const projectMatch = (student.projects || []).some(p => (p.title || '').toLowerCase().includes(query));
+        const skillMatch = (student.interests || []).some(i => i.toLowerCase().includes(query));
 
         return nameMatch || disciplineMatch || universityMatch || bioMatch || questionsMatch || projectMatch || skillMatch;
       }
 
       return true;
     });
-  }, [searchQuery, selectedInterest, filterShortlistedOnly, shortlist]);
+  }, [candidatePool, searchQuery, selectedInterest, filterShortlistedOnly, shortlist]);
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -132,17 +138,32 @@ export function EmployerDiscoveryView({
               )}
             </div>
 
-            {/* Shortlist Filter Toggle */}
-            <button
-              onClick={() => setFilterShortlistedOnly(!filterShortlistedOnly)}
-              className={`shortlist-toggle-switch ${filterShortlistedOnly ? 'active' : ''}`}
-              id="filter-shortlist-toggle"
-            >
-              <Bookmark size={15} fill={filterShortlistedOnly ? 'currentColor' : 'none'} />
-              <span>
-                {filterShortlistedOnly ? 'Showing Shortlisted Only' : 'View Shortlist Only'} ({shortlist.length})
-              </span>
-            </button>
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              {/* Shortlist Filter Toggle */}
+              <button
+                onClick={() => setFilterShortlistedOnly(!filterShortlistedOnly)}
+                className={`shortlist-toggle-switch ${filterShortlistedOnly ? 'active' : ''}`}
+                id="filter-shortlist-toggle"
+              >
+                <Bookmark size={15} fill={filterShortlistedOnly ? 'currentColor' : 'none'} />
+                <span>
+                  {filterShortlistedOnly ? 'Showing Shortlisted Only' : 'View Shortlist'} ({shortlist.length})
+                </span>
+              </button>
+
+              {/* Outreach Communications Center */}
+              {onOpenOutreachCenter && (
+                <button
+                  onClick={onOpenOutreachCenter}
+                  className="btn btn-secondary btn-sm"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', borderRadius: '8px' }}
+                  title="Open candidate message history and stage tracker"
+                >
+                  <Mail size={14} />
+                  <span>Outreach Center ({(fieldLog?.outreachMessages || []).length})</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Interest Chips Filter */}

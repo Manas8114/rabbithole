@@ -17,11 +17,12 @@ import {
   Bookmark,
   Trophy
 } from 'lucide-react';
-import { getTrailById, trailsData } from '../data/curiosityTrailData';
+import { getTrailById, getAvailableTrails } from '../data/curiosityTrailData';
 import { ReviewPrompt } from './ReviewPrompt';
 
 export function CuriosityTrailView({
   trailId = 'sustainable-fashion',
+  customTrails = [],
   onSelectTrail,
   onBackToPassport,
   onOpenInviteModal,
@@ -29,9 +30,11 @@ export function CuriosityTrailView({
   onAwardXp,
   onLogReview,
   onNoteActivity,
-  reviewedFocus
+  existingReview,
+  reviewedFocus,
+  onDeleteTrail
 }) {
-  const trail = getTrailById(trailId);
+  const trail = getTrailById(trailId, customTrails);
   const [activeNodeIndex, setActiveNodeIndex] = useState(0);
 
   // Reset active node when trailId changes
@@ -83,17 +86,15 @@ export function CuriosityTrailView({
   };
 
   const handleCopyLink = () => {
-    onShowToast?.(`Link to "${trail.title}" copied to clipboard!`);
+    try {
+      const url = `${window.location.origin}${window.location.pathname}#/trail/${trail.id}`;
+      navigator.clipboard?.writeText(url);
+    } catch {}
+    onShowToast?.(`Shareable link to "${trail.shortLabel || trail.title}" copied to clipboard!`);
   };
 
-  // Quick switcher — derived from the single source of truth (trailsData),
-  // not a hand-maintained list. Adding a trail to the data file is enough.
-  const availableTrails = Object.values(trailsData).map((t) => ({
-    id: t.id,
-    label: t.shortLabel || t.title,
-    author: t.studentName,
-    tag: t.tags?.[0] || '',
-  }));
+  // Quick switcher — derived from trailsData plus custom-authored trails
+  const availableTrails = getAvailableTrails(customTrails);
 
   return (
     <div className="trail-view-container">
@@ -553,28 +554,30 @@ export function CuriosityTrailView({
         {/* =========================================================================
             INTELLECTUAL HONESTY: WHAT REMAINS UNCERTAIN
             ========================================================================= */}
-        <section className="uncertainty-box">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <AlertCircle size={20} style={{ color: 'var(--accent-coral)' }} />
-            <div>
-              <h3 style={{ fontSize: '1.35rem', color: 'var(--ink-950)' }}>
-                Intellectual Honesty: What Remains Uncertain
-              </h3>
-              <p style={{ fontSize: '0.8125rem', color: 'var(--ink-500)' }}>
-                Every rigorous inquiry produces new boundaries. Here is where the data becomes ambiguous.
-              </p>
-            </div>
-          </div>
-
-          <div className="uncertainty-grid">
-            {trail.uncertainties.map((item, idx) => (
-              <div key={idx} className="uncertainty-card">
-                <h4>{item.title}</h4>
-                <p>{item.detail}</p>
+        {trail.uncertainties && trail.uncertainties.length > 0 && (
+          <section className="uncertainty-box">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <AlertCircle size={20} style={{ color: 'var(--accent-coral)' }} />
+              <div>
+                <h3 style={{ fontSize: '1.35rem', color: 'var(--ink-950)' }}>
+                  Intellectual Honesty: What Remains Uncertain
+                </h3>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--ink-500)' }}>
+                  Every rigorous inquiry produces new boundaries. Here is where the data becomes ambiguous.
+                </p>
               </div>
-            ))}
-          </div>
-        </section>
+            </div>
+
+            <div className="uncertainty-grid">
+              {trail.uncertainties.map((item, idx) => (
+                <div key={idx} className="uncertainty-card">
+                  <h4>{item.title}</h4>
+                  <p>{item.detail}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* =========================================================================
             THE NEXT QUESTION BANNER
@@ -585,10 +588,10 @@ export function CuriosityTrailView({
               WHERE THE INQUIRY LEADS NEXT
             </span>
             <h3>
-              "{trail.nextQuestion.question}"
+              "{trail.nextQuestion?.question || trail.keyInsight || 'How does this finding scale in real-world deployments?'}"
             </h3>
             <p>
-              {trail.nextQuestion.hypothesisPreview}
+              {trail.nextQuestion?.hypothesisPreview || 'Exploring next-order operational boundaries and open test hypotheses.'}
             </p>
           </div>
 
@@ -608,6 +611,20 @@ export function CuriosityTrailView({
             >
               Return to {trail.studentName}'s Passport
             </button>
+            {trail.isUserCreated && onDeleteTrail && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Delete this authored trail from your passport?')) {
+                    onDeleteTrail(trail.id);
+                    onBackToPassport('you');
+                  }
+                }}
+                className="btn btn-secondary btn-sm"
+                style={{ color: 'var(--accent-coral)', borderColor: 'rgba(217, 83, 79, 0.3)' }}
+              >
+                Delete This Trail
+              </button>
+            )}
           </div>
         </section>
 
@@ -615,8 +632,8 @@ export function CuriosityTrailView({
         <div style={{ marginBottom: '3rem' }}>
           <ReviewPrompt
             trail={trail}
-            existingReview={reviewedFocus ? { focus: reviewedFocus } : null}
-            onSubmit={(focus) => onLogReview?.(trailId, focus)}
+            existingReview={existingReview || (reviewedFocus ? { focus: reviewedFocus } : null)}
+            onSubmit={(focus, note) => onLogReview?.(trailId, focus, note)}
           />
         </div>
 

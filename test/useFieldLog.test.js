@@ -343,3 +343,76 @@ describe('demo seed', () => {
     expect(log.tourDone).toBe(false);
   });
 });
+
+describe('authoring, profile & peer review extensions', () => {
+  it('updates profile, pays 25 XP once, and awards profile-identity stamp', () => {
+    const log = mount();
+    const res1 = actRun(() => log.updateProfile({ name: 'Sam Jordan', discipline: 'Robotics' }));
+    expect(log.profile.name).toBe('Sam Jordan');
+    expect(log.profile.discipline).toBe('Robotics');
+    expect(log.profileCustomized).toBe(true);
+    // 25 XP action + 30 XP profile-identity stamp = 55 XP
+    expect(res1.earned).toBe(55);
+    expect(log.earnedStamps).toContain('profile-identity');
+
+    // Updating again updates data without paying XP twice
+    const res2 = actRun(() => log.updateProfile({ location: 'Seattle, WA' }));
+    expect(log.profile.location).toBe('Seattle, WA');
+    expect(res2.earned).toBe(0);
+  });
+
+  it('publishes original trail, marks explored, pays 100 XP, and awards trail-author stamp', () => {
+    const log = mount();
+    const sampleTrail = {
+      id: 'test-user-trail',
+      title: 'Can residential microgrids stabilize grid frequency?',
+      shortLabel: 'Microgrid Frequency',
+      nodes: [
+        { phase: 'Spark', title: 'Observation 1', summary: 'Summary 1', keyTakeaway: 'Takeaway 1' },
+        { phase: 'Synthesis', title: 'Finding', summary: 'Summary 2', keyTakeaway: 'Takeaway 2' },
+      ],
+      resultingProjectTitle: 'EdgeDroop Controller',
+    };
+
+    const res = actRun(() => log.publishTrail(sampleTrail));
+    expect(log.createdTrails).toHaveLength(1);
+    expect(log.createdTrails[0].id).toBe('test-user-trail');
+    expect(log.createdTrails[0].studentId).toBe('you');
+    expect(log.exploredTrails['test-user-trail'].complete).toBe(true);
+    // 100 XP action + 75 XP trail-author stamp = 175 XP
+    expect(res.earned).toBe(175);
+    expect(log.earnedStamps).toContain('trail-author');
+
+    // Deleting created trail works cleanly
+    actRun(() => log.deleteCreatedTrail('test-user-trail'));
+    expect(log.createdTrails).toHaveLength(0);
+  });
+
+  it('files detailed peer review with commentary and unlocks peer-dialogue stamp', () => {
+    const log = mount();
+    const res = actRun(() => log.logDetailedReview('sustainable-fashion', 'Sharpest question', 'Great data on MOQs.'));
+    expect(log.reviews).toHaveLength(1);
+    expect(log.reviews[0].note).toBe('Great data on MOQs.');
+    // 30 base + 40 detail + 40 mentor stamp + 40 peer-dialogue stamp = 150 XP
+    expect(res.earned).toBe(150);
+    expect(log.earnedStamps).toContain('mentor');
+    expect(log.earnedStamps).toContain('peer-dialogue');
+  });
+
+  it('records detailed outreach communication and updates pipeline', () => {
+    const log = mount();
+    actRun(() => log.sendDetailedOutreach({
+      studentId: 'alex-morgan',
+      studentName: 'Alex Morgan',
+      companyName: 'Patagonia',
+      roleType: 'Strategy Associate',
+      personalNote: 'We loved your sustainable fashion teardown.',
+    }));
+
+    expect(log.invited).toContain('alex-morgan');
+    expect(log.outreachMessages).toHaveLength(1);
+    expect(log.outreachMessages[0].companyName).toBe('Patagonia');
+    expect(log.outreachMessages[0].personalNote).toContain('sustainable fashion');
+    expect(log.inviteStatus['alex-morgan'].stage).toBe('Sent');
+  });
+});

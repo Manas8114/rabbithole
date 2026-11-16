@@ -563,3 +563,73 @@ export const students = [
     ]
   }
 ];
+
+// Helper to get students merged with the live field log (profile, authored trails, projects)
+export function getMergedStudents(fieldLog) {
+  if (!fieldLog) return students;
+  return students.map((s) => {
+    if (s.id !== 'you') return s;
+    const prof = fieldLog.profile || {};
+    const createdTrails = fieldLog.createdTrails || [];
+    const projects = createdTrails
+      .filter((t) => t.resultingProjectTitle)
+      .map((t, idx) => ({
+        id: `you-proj-${idx + 1}`,
+        title: t.resultingProjectTitle,
+        category: t.tags?.[0] || 'Original Research',
+        dateSpan: t.completedDate || '2025',
+        summary: t.resultingProjectSummary || t.subtitle || 'Tangible inquiry artifact built during field research.',
+        deliverableType: 'Interactive Artifact & Prototype',
+        liveUrl: t.resultingProjectLink || null,
+        metrics: `${t.nodes?.length || 1} research stages completed`,
+      }));
+
+    const mappedTrails = createdTrails.map((t) => ({
+      id: t.id,
+      question: t.title,
+      isFeatured: true,
+      tags: t.tags || ['Original Research'],
+      status: t.status || 'Synthesized & Published',
+      milestoneCount: t.nodes?.length || 1,
+      fieldNotesCount: t.nodes?.length || 1,
+      dateSpan: `${t.startedDate || '2024'} — ${t.completedDate || '2025'}`,
+      summary: t.subtitle || t.whyCurious?.slice(0, 150) || '',
+      resultingProjectTitle: t.resultingProjectTitle || null,
+      keyInsight: t.keyInsight || t.nodes?.[t.nodes.length - 1]?.keyTakeaway || '',
+    }));
+
+    const yourInquiries = (fieldLog.inquiries || []).map((q) => ({
+      question: q.text,
+      whyInterested: 'Your own question, filed to this passport from the Field Office.',
+      targetMethod: 'Open inquiry trace',
+    }));
+
+    return {
+      ...s,
+      name: prof.name || s.name,
+      discipline: prof.discipline || s.discipline,
+      university: prof.university || s.university,
+      gradYear: prof.gradYear || s.gradYear,
+      location: prof.location || s.location,
+      coverTag: prof.coverTag || s.coverTag,
+      intro: prof.intro || s.intro,
+      careerAspirations: prof.careerAspirations || s.careerAspirations,
+      interests: prof.interests?.length ? prof.interests : s.interests,
+      trails: mappedTrails,
+      projects: projects,
+      exploreNext: yourInquiries.length ? yourInquiries : s.exploreNext,
+      stats: {
+        trailsActive: mappedTrails.length,
+        projectsBuilt: projects.length,
+        fieldNotes: fieldLog.fieldNotes?.length || 0,
+        milestoneStamps: fieldLog.earnedStamps?.length || 0,
+        cqIndex: `${fieldLog.cq}/100`,
+      },
+    };
+  });
+}
+
+export function getStudentById(studentId, fieldLog) {
+  const all = getMergedStudents(fieldLog);
+  return all.find((s) => s.id === studentId) || all[0];
+}

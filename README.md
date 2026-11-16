@@ -9,20 +9,22 @@ resume. Includes a gamified **Field Office** layer (XP, ranks, collectable
 stamp achievements, weekly meetings, and side quests) with a persistent local
 field log, plus a light/dark theme.
 
-**In the demo:** 9 exploration trails across a 3-student cohort, a "you"
-passport with a live trail ledger and an open-question writer, an employer
-discovery view with a shortlist and a Sent → Replied → Interview → Offer
-invite pipeline, a 90-second guided tour for first-time visitors, a weekly
-Field Office cycle with re-attendance, and — from the stamp collection — a
-one-click **demo portfolio** seed plus export / import of your field log as
-JSON and a printable one-page **Curiosity Report**.
+**Features in the platform:**
+- **Author Original Trails**: Multi-stage Authoring Studio (`TrailCreatorModal`) to craft, milestone-trace, and publish your own questions, complete with inspiration templates and tangible artifact links (+100 XP).
+- **Explorer Profile Identity**: Custom name, discipline, university, grad year, location, bio, and focus tags (+25 XP).
+- **Recruiter Outreach Center**: Comprehensive candidate communication log, message history, and live 4-stage pipeline tracker (`Sent` → `Replied` → `Interview` → `Offer`).
+- **In-Depth Peer Reviews**: Focus tags plus constructive written commentary filed directly to cohort ledgers (+40 XP bonus).
+- **Deep-Linking & Shareability**: Full URL hash routing (`#/passport/:id`, `#/trail/:id`, `#/employer`, `#/office`) and one-click share buttons copying direct links to clipboard.
+- **9 Exploration Trails**: Spanning circular economy, cognitive AI systems, and biomedical materials.
+- **Interactive Field Office**: 6-tier career rank ladder, 19 collectible achievement seals, weekly dilemma meetings, and side quests.
+- **Carry-able Artifacts**: One-click **Demo Portfolio** seed, JSON export/import, and a printable one-page **Curiosity Report** formatted for recruiters.
 
 ## Stack
 
 React 19 + Vite, styled with a hand-rolled editorial design system
 (`src/index.css`) in a heritage palette — forest green, warm cream,
-explorer brass, sage. No router; views are React-state driven. No backend —
-all persistence (field log, theme) is per-browser `localStorage`.
+explorer brass, sage. URL hash routing with popstate/hashchange sync. Local persistence
+(field log, profile, custom trails, outreach, theme) via per-browser `localStorage`.
 
 ## Run locally
 

@@ -1355,10 +1355,35 @@ export const trailsData = {
   }
 };
 
-// Safe helper to get trail by id with fallback
-export function getTrailById(id) {
+// Safe helper to get trail by id with custom trails and fallback
+export function getTrailById(id, customTrails = []) {
   if (!id) return trailsData["sustainable-fashion"];
+  if (Array.isArray(customTrails)) {
+    const custom = customTrails.find((t) => t.id === id);
+    if (custom) return custom;
+  }
   return trailsData[id] || trailsData["sustainable-fashion"];
+}
+
+// Get all trails including custom-authored ones
+export function getAllTrails(customTrails = []) {
+  const customMap = Array.isArray(customTrails)
+    ? Object.fromEntries(customTrails.map((t) => [t.id, t]))
+    : {};
+  return { ...trailsData, ...customMap };
+}
+
+// Get switcher list including custom-authored ones
+export function getAvailableTrails(customTrails = []) {
+  const customList = Array.isArray(customTrails)
+    ? customTrails.map((t) => ({
+        id: t.id,
+        label: t.shortLabel || t.title,
+        author: t.studentName || 'You',
+        tag: t.tags?.[0] || 'Authored',
+      }))
+    : [];
+  return [...availableTrails, ...customList];
 }
 
 // Derived switcher list — the single source of truth for "which trails

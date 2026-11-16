@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Printer, Compass } from 'lucide-react';
 import { STAMP_CATALOG, STAMP_ICONS } from '../data/gamificationData';
-import { trailsData } from '../data/curiosityTrailData';
+import { getAllTrails } from '../data/curiosityTrailData';
 import { useModalBehavior } from '../hooks/useModalBehavior';
 
 // Page-load date, formatted once at module scope: the printed report's
@@ -18,14 +18,17 @@ export function CuriosityReportModal({ isOpen, onClose, fieldLog }) {
   const dialogRef = useModalBehavior(isOpen, onClose);
   if (!isOpen) return null;
 
+  const allTrails = getAllTrails(fieldLog.createdTrails || []);
+  const authoredTrails = fieldLog.createdTrails || [];
   const explored = Object.entries(fieldLog.exploredTrails || {}).map(([id, rec]) => ({
     id,
-    total: trailsData[id]?.nodes?.length || rec.stagesRead,
+    total: allTrails[id]?.nodes?.length || rec.stagesRead,
     ...rec,
   }));
   const questsDone = (fieldLog.fieldNotes || []);
   const stamps = (fieldLog.earnedStamps || []).map((id) => STAMP_CATALOG.find((s) => s.id === id)).filter(Boolean);
   const inquiries = fieldLog.inquiries || [];
+  const profile = fieldLog.profile || {};
 
   return (
     <div ref={dialogRef} className="modal-overlay report-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="curiosity-report-title">
@@ -60,7 +63,12 @@ export function CuriosityReportModal({ isOpen, onClose, fieldLog }) {
               </div>
               <div>
                 <div className="report-doc-title">CURIOSITY PASSPORT</div>
-                <div className="report-doc-sub">Field Log Report · {GENERATED_ON}</div>
+                <div className="report-doc-sub">
+                  {profile.name || 'Explorer'} · {profile.discipline || 'Independent Explorer'} ({profile.university || 'Cohort'})
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--ink-500)', marginTop: '0.15rem' }}>
+                  Field Log Report · Generated {GENERATED_ON}
+                </div>
               </div>
             </div>
             <div className="report-doc-meta">
@@ -71,17 +79,43 @@ export function CuriosityReportModal({ isOpen, onClose, fieldLog }) {
           </header>
 
           <div className="report-grid">
+            {authoredTrails.length > 0 && (
+              <section className="report-section" style={{ gridColumn: '1 / -1' }}>
+                <h4>Authored Inquiries & Tangible Artifacts</h4>
+                <ul>
+                  {authoredTrails.map((t) => (
+                    <li key={t.id} className="report-trail-item" style={{ paddingBottom: '0.5rem' }}>
+                      <div className="report-trail-head">
+                        <strong style={{ color: 'var(--ink-950)' }}>"{t.title}"</strong>
+                        <span className="mono-stamp" style={{ fontSize: '0.7rem', color: 'var(--forest-700)' }}>
+                          {t.nodes?.length || 1} Stages · Published
+                        </span>
+                      </div>
+                      {t.resultingProjectTitle && (
+                        <div style={{ fontSize: '0.8rem', color: 'var(--forest-800)', marginTop: '0.2rem' }}>
+                          Proof Artifact: <em>{t.resultingProjectTitle}</em>
+                        </div>
+                      )}
+                      <div style={{ fontSize: '0.775rem', color: 'var(--ink-700)', marginTop: '0.15rem' }}>
+                        Insight: {t.keyInsight}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
             <section className="report-section">
-              <h4>Exploration Trails</h4>
+              <h4>Exploration Trails Traced</h4>
               {explored.length ? (
                 <ul>
                   {explored.map((t) => {
-                    const trail = trailsData[t.id];
+                    const trail = allTrails[t.id];
                     const pct = Math.min(100, Math.round((t.stagesRead / t.total) * 100));
                     return (
                       <li key={t.id} className="report-trail-item">
                         <div className="report-trail-head">
-                          <span>{trail?.title || t.id}</span>
+                          <span>{trail?.shortLabel || trail?.title || t.id}</span>
                           <strong>{t.complete ? 'Complete' : `${pct}%`}</strong>
                         </div>
                         <div className="report-progress"><span style={{ width: `${pct}%` }} /></div>
@@ -95,7 +129,7 @@ export function CuriosityReportModal({ isOpen, onClose, fieldLog }) {
             </section>
 
             <section className="report-section">
-              <h4>Seals Earned</h4>
+              <h4>Seals Earned ({stamps.length})</h4>
               {stamps.length ? (
                 <div className="report-stamps">
                   {stamps.map((s) => {
@@ -114,7 +148,7 @@ export function CuriosityReportModal({ isOpen, onClose, fieldLog }) {
             </section>
 
             <section className="report-section">
-              <h4>Field Notes</h4>
+              <h4>Field Notes & Quests</h4>
               {questsDone.length ? (
                 <ul>{questsDone.map((n, i) => <li key={i}>Field note filed · {new Date(n.ts).toLocaleDateString()}</li>)}</ul>
               ) : (

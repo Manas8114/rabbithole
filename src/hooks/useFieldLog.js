@@ -35,6 +35,26 @@ function emptyLog() {
     tourDone: false,    // 90-second guided tour finished (all goals met)
     tourSkipped: false, // user dismissed the briefing instead
     yourPassportVisited: false,
+    // Custom Explorer Profile
+    profile: {
+      name: 'You',
+      discipline: 'Independent Explorer (You)',
+      university: 'The Curiosity Passport Cohort',
+      gradYear: 'Class of 2026',
+      location: 'San Francisco, CA',
+      coverTag: 'Self-Direction · Your Own Inquiry · Open Question',
+      intro: "This is the passport you are writing right now. It starts empty — no trails, no artifacts, no stamps. Every trail you open, stage you trace, meeting you attend, and field note you file is recorded here as evidence of how you think when the question is your own.",
+      careerAspirations: "To build a working record of curiosity: open questions, tested hypotheses, and artifacts that survive a stranger's scrutiny.",
+      interests: [
+        'Open Questions',
+        'First-Principles Thinking',
+        'Fieldwork',
+        'Self-Directed Learning'
+      ],
+    },
+    profileCustomized: false,
+    createdTrails: [],
+    outreachMessages: [],
   };
 }
 
@@ -250,13 +270,125 @@ export function useFieldLog() {
     log.claimedOnce['quest:q-teardown-10k'] = { xp: 40, ts: now - 4 * day };
     log.claimedOnce['quest:q-field-note'] = { xp: 20, ts: now - 4 * day };
 
-    // A peer review on a classmate's trail.
-    log.reviews = [{ trailId: 'multi-modal-latency', focus: 'The 600ms flow-break threshold is the sharpest insight in the set', ts: now - 3 * day }];
+    // A peer review on a classmate's trail with detailed commentary.
+    log.reviews = [{
+      trailId: 'multi-modal-latency',
+      focus: 'The 600ms flow-break threshold is the sharpest insight in the set',
+      note: 'The 600ms boundary matches what we observed in telemetry—operator loops break at exactly this threshold.',
+      reviewer: 'You',
+      ts: now - 3 * day,
+    }];
     log.claimedOnce['review:multi-modal-latency'] = { xp: 30, ts: now - 3 * day };
+    log.claimedOnce['reviewDetail:multi-modal-latency'] = { xp: 40, ts: now - 3 * day };
 
     // One open question written onto the player's passport.
     log.inquiries = [{ text: 'Do ambient scribing devices change how much patients volunteer, once the first few consultations settle?', ts: now - day }];
     log.claimedOnce['inquiry:Do ambient scribing devices change how much patients volunteer, once the first few consultations settle?'] = { xp: 15, ts: now - day };
+
+    // Explorer Profile customization
+    log.profileCustomized = true;
+    log.profile = {
+      name: 'Alex Rivera',
+      discipline: 'Computational Energy Systems & Microgrids',
+      university: 'MIT Energy Initiative Cohort',
+      gradYear: 'Class of 2026',
+      location: 'Boston, MA',
+      coverTag: 'Distributed Energy · Grid Edge Intelligence · Unit Economics',
+      intro: 'Exploring how decentralized battery microgrids can maintain frequency regulation without relying on natural gas peaker plants.',
+      careerAspirations: 'To lead grid-edge software architecture and hardware-in-the-loop validation for climate infrastructure companies.',
+      interests: ['Grid Resilience', 'Energy Storage', 'Power Electronics', 'Stochastic Modeling'],
+    };
+    log.claimedOnce['profile:customized'] = { xp: 25, ts: now - 5 * day };
+
+    // An authored original curiosity trail
+    const demoAuthoredTrail = {
+      id: 'user-trail-microgrid',
+      shortLabel: 'Microgrid Frequency Resilience',
+      studentId: 'you',
+      studentName: 'Alex Rivera',
+      studentRole: 'Computational Energy Systems, MIT Energy Cohort',
+      title: 'Can residential battery microgrids stabilize regional frequency swings at sub-second latency?',
+      subtitle: 'An empirical investigation into grid-forming inverter dispatch and stochastic response latency.',
+      status: 'Synthesized & Published',
+      startedDate: 'Nov 2024',
+      completedDate: 'Feb 2025',
+      readTime: '6 min explore',
+      tags: ['Energy Tech', 'Grid Resilience', 'Embedded Controls', 'Unit Economics'],
+      curiosityRating: 'Platform Highlight',
+      whyCurious: 'During grid strains, peaker plants run at $1,200/MWh while thousands of neighborhood battery storage units sit idle due to latency in telemetry aggregation. I wanted to see if peer-to-peer droop control could bypass centralized dispatch entirely.',
+      nodes: [
+        {
+          id: 'node-1',
+          stepNumber: '01',
+          phase: 'Spark & Field Observation',
+          title: 'Peaker Economics vs. Distributed Idle Storage',
+          date: 'Nov 2024',
+          summary: 'Analyzed ISO-NE real-time LMP pricing during high-volatility events against neighborhood solar-battery telemetry.',
+          body: 'Telemetry showed residential storage response took 4.2 seconds to initiate under cloud aggregator API calls—just slow enough to miss the primary frequency response window.',
+          keyTakeaway: 'Centralized API aggregators are fundamentally unsuited for primary frequency response; sub-200ms local autonomous response is required.',
+          evidenceType: 'Market Analysis & Telemetry',
+        },
+        {
+          id: 'node-2',
+          stepNumber: '02',
+          phase: 'Hardware Prototype & Testbench',
+          title: 'Benchtop Droop Control on 48V Micro-Inverter Rig',
+          date: 'Dec 2024',
+          summary: 'Built a hardware-in-the-loop testbench measuring local line frequency with 0.005Hz precision at 100Hz sampling rate.',
+          body: 'By computing local frequency derivative (RoCoF) on an STM32 MCU, the inverter autonomous trigger kicked in within 68ms—cutting peaker reliance by 80% in simulated grid drops.',
+          keyTakeaway: 'Autonomous local sensing eliminates network jitter and proves grid-forming resilience at edge nodes.',
+          evidenceType: 'Hardware Testbench',
+        },
+        {
+          id: 'node-3',
+          stepNumber: '03',
+          phase: 'Synthesized Framework & Artifact',
+          title: 'The Edge-Grid Dispatch Protocol & Open Model',
+          date: 'Feb 2025',
+          summary: 'Published the simulation suite and open hardware schematics for edge-triggered micro-inverters.',
+          body: 'Presented findings to regional operators. The model shows an aggregate 5MW microgrid cluster can displace a 20MW peaker unit during the critical 10-second transition window.',
+          keyTakeaway: 'The future grid is bottom-up, decentralized, and governed by autonomous local physics.',
+          evidenceType: 'Simulation & Whitepaper',
+        },
+      ],
+      resultingProjectTitle: 'EdgeDroop: Sub-100ms Frequency Controller',
+      resultingProjectSummary: 'Open-source embedded firmware and Python simulation model demonstrating autonomous frequency support on microgrids.',
+      resultingProjectLink: 'https://github.com/curiosity-cohort/edgedroop-firmware',
+      keyInsight: 'Autonomous edge sensing replaces telemetry latency with physics-driven local actuation.',
+      isUserCreated: true,
+    };
+    log.createdTrails = [demoAuthoredTrail];
+    log.claimedOnce['publishTrail:user-trail-microgrid'] = { xp: 100, ts: now - 2 * day };
+    log.exploredTrails['user-trail-microgrid'] = {
+      stagesRead: 3,
+      complete: true,
+      firstTs: now - 2 * day,
+      lastTs: now - day,
+    };
+
+    // Outreach Messages
+    log.outreachMessages = [
+      {
+        id: 'outreach-seed-1',
+        studentId: 'priya-chen',
+        studentName: 'Priya Patel',
+        companyName: 'Anthropic',
+        roleType: 'Research & Prototyping Lead',
+        personalNote: 'Priya, your work on multi-modal latency curves is exceptional. We would love to talk about your audio pipeline benchmarks.',
+        stage: 'Offer',
+        ts: now - 6 * day,
+      },
+      {
+        id: 'outreach-seed-2',
+        studentId: 'alex-morgan',
+        studentName: 'Alex Morgan',
+        companyName: 'Patagonia',
+        roleType: 'Strategy & Operations Associate',
+        personalNote: 'Alex, your analysis on sub-40 evergreen SKUs resonated deeply with our circular product team.',
+        stage: 'Replied',
+        ts: now - 6 * day,
+      },
+    ];
 
     // Recruiter pipeline mid-flight: one offer, one interview, one reply.
     const stages = {
@@ -350,6 +482,8 @@ export function useFieldLog() {
     attendanceTotal: logRef.current.attendanceTotal,
     tourDone: logRef.current.tourDone,
     yourPassportVisited: logRef.current.yourPassportVisited,
+    createdTrails: logRef.current.createdTrails || [],
+    profileCustomized: !!logRef.current.profileCustomized,
   });
 
   /**
@@ -545,15 +679,193 @@ export function useFieldLog() {
   /**
    * Step 5 hook: log a peer review on a trail (feeds the Mentor stamp).
    */
-  const logReview = (trailId, focus) => {
+  const logReview = (trailId, focus, note = '') => {
+    return logDetailedReview(trailId, focus, note);
+  };
+
+  /**
+   * In-depth peer review with written commentary.
+   */
+  const logDetailedReview = (trailId, focus, note = '') => {
     const key = `review:${trailId}`;
-    if ((logRef.current.reviews || []).some((r) => r.trailId === trailId)) {
-      return { earned: 0, xp: logRef.current.xp, rankUp: null, newStamps: [] };
-    }
-    const result = awardOnce(key, 30, (l) => ({
-      reviews: [...(l.reviews || []), { trailId, focus, ts: Date.now() }],
+    const detailKey = `reviewDetail:${trailId}`;
+    const hasNote = Boolean(note && note.trim().length > 0);
+    const willEarnBase = !logRef.current.claimedOnce[key];
+    const willEarnDetail = hasNote && !logRef.current.claimedOnce[detailKey];
+    const rankBefore = rankForXp(logRef.current.xp);
+
+    const baseEarn = willEarnBase ? 30 : 0;
+    const detailEarn = willEarnDetail ? (XP_ACTIONS.detailedReview?.xp || 40) : 0;
+    const totalEarn = baseEarn + detailEarn;
+
+    mutate((l) => {
+      const existingReviews = l.reviews || [];
+      const updatedReviews = existingReviews.some((r) => r.trailId === trailId)
+        ? existingReviews.map((r) => (r.trailId === trailId ? { ...r, focus, note, ts: Date.now() } : r))
+        : [...existingReviews, { trailId, focus, note, reviewer: l.profile?.name || 'You', ts: Date.now() }];
+
+      let updated = {
+        ...l,
+        reviews: updatedReviews,
+      };
+
+      if (willEarnBase) {
+        updated.claimedOnce = { ...updated.claimedOnce, [key]: { xp: 30, ts: Date.now() } };
+      }
+      if (willEarnDetail) {
+        updated.claimedOnce = { ...updated.claimedOnce, [detailKey]: { xp: detailEarn, ts: Date.now() } };
+      }
+      updated.xp += totalEarn;
+      return updated;
+    });
+
+    const newStamps = settleStamps();
+    const rankAfter = rankForXp(logRef.current.xp);
+    return {
+      earned: totalEarn + newStamps.reduce((sum, s) => sum + s.bonusXp, 0),
+      xp: logRef.current.xp,
+      rankUp: rankAfter.index > rankBefore.index ? rankAfter : null,
+      newStamps,
+    };
+  };
+
+  /**
+   * Update the explorer's own profile. First time pays one-shot 25 XP and
+   * awards the Field Identity stamp.
+   */
+  const updateProfile = (fields) => {
+    const isFirstTime = !logRef.current.profileCustomized;
+    const rankBefore = rankForXp(logRef.current.xp);
+    const xpAction = XP_ACTIONS.updateProfile;
+    const key = 'profile:customized';
+    const willEarn = isFirstTime && !logRef.current.claimedOnce[key];
+
+    mutate((l) => {
+      const mergedProfile = { ...(l.profile || emptyLog().profile), ...fields };
+      let updated = {
+        ...l,
+        profile: mergedProfile,
+        profileCustomized: true,
+      };
+      if (willEarn) {
+        updated.xp += xpAction.xp;
+        updated.claimedOnce = { ...updated.claimedOnce, [key]: { xp: xpAction.xp, ts: Date.now() } };
+      }
+      return updated;
+    });
+
+    const newStamps = settleStamps();
+    const rankAfter = rankForXp(logRef.current.xp);
+    return {
+      earned: (willEarn ? xpAction.xp : 0) + newStamps.reduce((sum, s) => sum + s.bonusXp, 0),
+      xp: logRef.current.xp,
+      rankUp: rankAfter.index > rankBefore.index ? rankAfter : null,
+      newStamps,
+      profile: logRef.current.profile,
+    };
+  };
+
+  /**
+   * Author & publish an original curiosity trail to the player's passport.
+   * Awards 100 XP one-shot per trail, marks it explored/complete, and settles
+   * the Published Author stamp.
+   */
+  const publishTrail = (trailData) => {
+    // eslint-disable-next-line react/purity
+    const id = trailData.id || `user-trail-${Date.now()}`;
+    const key = `publishTrail:${id}`;
+    const authorName = logRef.current.profile?.name || 'You';
+    // eslint-disable-next-line react/purity
+    const pubDate = trailData.publishedDate || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const completeTrail = {
+      ...trailData,
+      id,
+      studentId: 'you',
+      studentName: authorName,
+      studentRole: `${logRef.current.profile?.discipline || 'Independent Explorer'}, ${logRef.current.profile?.university || 'Curiosity Cohort'}`,
+      isUserCreated: true,
+      publishedDate: pubDate,
+      nodes: (trailData.nodes || []).map((node, i) => ({
+        ...node,
+        stepNumber: String(i + 1).padStart(2, '0'),
+      })),
+    };
+
+    const willEarn = !logRef.current.claimedOnce[key];
+    const rankBefore = rankForXp(logRef.current.xp);
+    const xp = XP_ACTIONS.publishTrail.xp;
+
+    mutate((l) => {
+      const existingIdx = (l.createdTrails || []).findIndex((t) => t.id === id);
+      const updatedCreated = existingIdx >= 0
+        ? l.createdTrails.map((t, i) => (i === existingIdx ? completeTrail : t))
+        : [...(l.createdTrails || []), completeTrail];
+
+      const stageCount = completeTrail.nodes?.length || 1;
+      let updated = {
+        ...l,
+        createdTrails: updatedCreated,
+        exploredTrails: {
+          ...(l.exploredTrails || {}),
+          [id]: {
+            stagesRead: stageCount,
+            complete: true,
+            firstTs: Date.now(),
+            lastTs: Date.now(),
+          },
+        },
+      };
+
+      if (willEarn) {
+        updated.xp += xp;
+        updated.claimedOnce = { ...updated.claimedOnce, [key]: { xp, ts: Date.now() } };
+      }
+      return updated;
+    });
+
+    const newStamps = settleStamps();
+    const rankAfter = rankForXp(logRef.current.xp);
+    return {
+      earned: (willEarn ? xp : 0) + newStamps.reduce((sum, s) => sum + s.bonusXp, 0),
+      xp: logRef.current.xp,
+      rankUp: rankAfter.index > rankBefore.index ? rankAfter : null,
+      newStamps,
+      trail: completeTrail,
+    };
+  };
+
+  /**
+   * Delete an authored trail.
+   */
+  const deleteCreatedTrail = (trailId) => {
+    mutate((l) => ({
+      ...l,
+      createdTrails: (l.createdTrails || []).filter((t) => t.id !== trailId),
     }));
-    return result;
+  };
+
+  /**
+   * Send detailed recruiter outreach, recording full message text and timeline.
+   */
+  const sendDetailedOutreach = ({ studentId, studentName, companyName, roleType, personalNote }) => {
+    const inviteResult = registerInvite(studentId);
+    mutate((l) => {
+      const newMsg = {
+        id: `outreach-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        studentId,
+        studentName,
+        companyName,
+        roleType,
+        personalNote,
+        stage: INVITE_STAGES[0],
+        ts: Date.now(),
+      };
+      return {
+        ...l,
+        outreachMessages: [newMsg, ...(l.outreachMessages || [])],
+      };
+    });
+    return inviteResult;
   };
 
   /**
@@ -613,6 +925,10 @@ export function useFieldLog() {
     tourDone: log.tourDone || false,
     tourSkipped: log.tourSkipped || false,
     yourPassportVisited: log.yourPassportVisited || false,
+    profile: log.profile || emptyLog().profile,
+    profileCustomized: !!log.profileCustomized,
+    createdTrails: log.createdTrails || [],
+    outreachMessages: log.outreachMessages || [],
     rank: rankForXp(xp),
     nextRank: nextRankForXp(xp),
     progressPct: rankProgressPct(xp),
@@ -625,6 +941,11 @@ export function useFieldLog() {
     startNewWeek,
     completeQuest,
     logReview,
+    logDetailedReview,
+    updateProfile,
+    publishTrail,
+    deleteCreatedTrail,
+    sendDetailedOutreach,
     writeInquiry,
     noteTrailActivity,
     advanceInvite,

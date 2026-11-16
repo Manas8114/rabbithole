@@ -28,6 +28,7 @@ function loadStudents() {
   src = src.replace(/^import .*$/gim, '');
   src = src.replace(/^export const students =/m, 'globalThis.__students =');
   src = src.replace(/^export const youSeedInquiry/m, 'const youSeedInquiry');
+  src = src.replace(/^export function [\s\S]*$/m, '');
   new Function(src)();
   return globalThis.__students;
 }
